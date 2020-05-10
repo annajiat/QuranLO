@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dlg:window PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "dialog.dtd">
+<dlg:window xmlns:dlg="http://openoffice.org/2000/dialog" xmlns:script="http://openoffice.org/2000/script" dlg:id="InsertQuranTextDialog" dlg:left="150" dlg:top="50" dlg:width="100" dlg:height="140" dlg:closeable="true" dlg:moveable="true" dlg:title="Insert Quran Text">
+ <dlg:bulletinboard>
+  <dlg:menulist dlg:id="SurahListBox" dlg:tab-index="1" dlg:left="35" dlg:top="9" dlg:width="60" dlg:height="10" dlg:spin="true">
+   <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:EvtSurahChanged" script:language="UNO"/>
+  </dlg:menulist>
+  <dlg:text dlg:id="AllSurahLabel" dlg:tab-index="2" dlg:left="6" dlg:top="32" dlg:width="24" dlg:height="10" dlg:value="All Ayat:" dlg:valign="center"/>
+  <dlg:titledbox dlg:id="SurahGroupBox" dlg:tab-index="0" dlg:left="2" dlg:top="2" dlg:width="96" dlg:height="20">
+   <dlg:title dlg:value="Surah"/>
+  </dlg:titledbox>
+  <dlg:text dlg:id="AyatFromLabel" dlg:tab-index="4" dlg:disabled="true" dlg:left="6" dlg:top="45" dlg:width="14" dlg:height="9" dlg:value="From: " dlg:valign="center"/>
+  <dlg:text dlg:id="AyatToLabel" dlg:tab-index="5" dlg:disabled="true" dlg:left="6" dlg:top="58" dlg:width="14" dlg:height="9" dlg:value="To: " dlg:valign="center"/>
+  <dlg:numericfield dlg:id="AyatFromNumericField" dlg:tab-index="6" dlg:disabled="true" dlg:left="35" dlg:top="45" dlg:width="60" dlg:height="9" dlg:align="right" dlg:valign="center" dlg:decimal-accuracy="0" dlg:value-min="1" dlg:value-max="286" dlg:spin="true" dlg:repeat="50">
+   <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:EvtAyahFromChanged" script:language="UNO"/>
+  </dlg:numericfield>
+  <dlg:numericfield dlg:id="AyatToNumericField" dlg:tab-index="7" dlg:disabled="true" dlg:left="35" dlg:top="58" dlg:width="60" dlg:height="9" dlg:align="right" dlg:valign="center" dlg:decimal-accuracy="0" dlg:value-min="1" dlg:value-max="286" dlg:spin="true" dlg:repeat="50">
+   <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:EvtAyahToChanged" script:language="UNO"/>
+  </dlg:numericfield>
+  <dlg:titledbox dlg:id="AyatGroupBox" dlg:tab-index="3" dlg:disabled="true" dlg:left="2" dlg:top="22" dlg:width="96" dlg:height="49">
+   <dlg:title dlg:value="Ayat"/>
+  </dlg:titledbox>
+  <dlg:button dlg:id="OkButton" dlg:tab-index="8" dlg:left="61" dlg:top="128" dlg:width="36" dlg:height="10" dlg:value="Ok">
+   <script:event script:event-name="on-performaction" script:macro-name="vnd.sun.star.UNO:EvtOkButtonPressed" script:language="UNO"/>
+  </dlg:button>
+  <dlg:checkbox dlg:id="AllRangeCheckBox" dlg:tab-index="9" dlg:left="35" dlg:top="32" dlg:width="10" dlg:height="10" dlg:align="center" dlg:valign="center" dlg:checked="true">
+   <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:EvtAllRangeIndicatorChanged" script:language="UNO"/>
+  </dlg:checkbox>
+  <dlg:titledbox dlg:id="OutputGroupBox" dlg:tab-index="10" dlg:left="2" dlg:top="71" dlg:width="96" dlg:height="51">
+   <dlg:title dlg:value="Output"/>
+  </dlg:titledbox>
+  <dlg:text dlg:id="FontLabel" dlg:tab-index="11" dlg:left="6" dlg:top="82" dlg:width="24" dlg:height="9" dlg:value="Font:" dlg:valign="center"/>
+  <dlg:text dlg:id="FontSizeLabel" dlg:tab-index="12" dlg:left="6" dlg:top="95" dlg:width="24" dlg:height="9" dlg:value="Font Size:" dlg:valign="center"/>
+  <dlg:numericfield dlg:id="FontSizeNumericField" dlg:tab-index="13" dlg:left="35" dlg:top="95" dlg:width="60" dlg:height="9" dlg:align="right" dlg:valign="center" dlg:decimal-accuracy="1" dlg:value="10" dlg:value-min="1" dlg:value-max="100" dlg:spin="true" dlg:repeat="50">
+   <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:EvtFontSizeChanged" script:language="UNO"/>
+  </dlg:numericfield>
+  <dlg:text dlg:id="SurahNameLabel" dlg:tab-index="14" dlg:left="6" dlg:top="9" dlg:width="24" dlg:height="9" dlg:value="Name:" dlg:valign="center"/>
+  <dlg:menulist dlg:id="FontListBox" dlg:tab-index="15" dlg:left="35" dlg:top="82" dlg:width="60" dlg:height="9" dlg:spin="true"/>
+  <dlg:text dlg:id="NewLineLabel" dlg:tab-index="16" dlg:left="6" dlg:top="108" dlg:width="24" dlg:height="10" dlg:value="Newline:" dlg:valign="center"/>
+  <dlg:checkbox dlg:id="NewlineCheckBox" dlg:tab-index="17" dlg:left="36" dlg:top="108" dlg:width="10" dlg:height="10" dlg:align="center" dlg:valign="center" dlg:checked="true">
+   <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:EvtNewLineIndicatorChanged" script:language="UNO"/>
+  </dlg:checkbox>
+ </dlg:bulletinboard>
+</dlg:window>

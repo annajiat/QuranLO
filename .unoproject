@@ -1,0 +1,12 @@
+#UNO project configuration file
+#Sat Apr 11 15:58:14 CEST 2020
+project.prefix=nl.mossoft.loeiqt
+project.language=Java
+project.ooo=LibreOffice 6.4
+project.idl=/idl
+regclassname=nl.mossoft.loeiqt.comp.RegistrationHandler
+project.implementation=comp
+project.build=build
+project.sdk=6.4.1.2
+project.srcdir=/src
+javaversion=java5

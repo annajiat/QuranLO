@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<description xmlns="http://openoffice.org/extensions/description/2006" xmlns:d="http://openoffice.org/extensions/description/2006" xmlns:xlink="http://www.w3.org/1999/xlink">
+	<version value="0.1"/>
+	<identifier value="nl.mossoft.loeiqt.insertqurantext"/>
+	<display-name>
+		<name lang="en">InsertQuranText</name>
+	</display-name>
+	<icon>
+		<default xlink:href="images/actionIqt_26.png"/>
+	</icon>
+	<extension-description>
+		<src lang="en" xlink:href="description/desc_en.txt"/>
+	</extension-description>
+</description>

@@ -1,0 +1,12 @@
+#ifndef __nl_mossoft_loeiqt_insertqurantext_idl__
+#define __nl_mossoft_loeiqt_insertqurantext_idl__
+
+#include <com/sun/star/task/XJobExecutor.idl>
+module nl { module mossoft { module loeiqt { 	
+
+	service InsertQuranText : com::sun::star::task::XJobExecutor {
+
+	};
+
+ }; }; };
+#endif
