@@ -6,14 +6,12 @@ The standard font is selected from the LibreOffice Basic Fonts (CTL) setting.
 It uses the Default font and its Fontsize. The Fontsize can be overridden by setting 
 it on the selection dialog. 
 
-Note: The Font Selection is currently not implemented.
+The Font Selection shows only fonts that support the arabic ...
 
-A font that gives very good results is: Scheherazade that you can find at <https://software.sil.org/scheherazade/>.
-It allows you to fine tune the font by so called smart features. You can even generate 
-a font with the smart features set to your liking. 
+A font that gives very good results is: Scheherazade. This you can find at <https://software.sil.org/scheherazade/>.
+It allows you to fine tune the font by so called smart features. You can even generate a font with the smart features set to your liking. 
 
-Other Arabic fonts give mixed results. Some don't have the parenthesis or even the 
-Arabic numbers. 
+Other Arabic fonts give mixed results. Some don't have the parenthesis or even the standard Arabic numbers. 
 
 To build the extension I used the LibreOffice Eclipse plugin for extension development: 
 <https://libreoffice.github.io/loeclipse/>. It also provides a starter project that you can use as an example. 

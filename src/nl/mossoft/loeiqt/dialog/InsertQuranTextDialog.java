@@ -19,7 +19,10 @@
 
 package nl.mossoft.loeiqt.dialog;
 
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.util.List;
+import java.util.Locale;
 
 import com.sun.star.awt.XCheckBox;
 import com.sun.star.awt.XDialog;
@@ -49,6 +52,7 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     private static final String EVENTALLRANGEINDICATORCHANGED = "EvtAllRangeIndicatorChanged";
     private static final String EVENTAYAHFROMCHANGED = "EvtAyahFromChanged";
     private static final String EVENTAYAHTOCHANGED = "EvtAyahToChanged";
+    private static final String EVENTFONTNAMECHANGED = "EvtFontNameChanged";
     private static final String EVENTFONTSIZECHANGED = "EvtFontSizeChanged";
     private static final String EVENTNEWLINEINDICATORCHANGED = "EvtNewLineIndicatorChanged";
     private static final String EVENTOKBUTTONPRESSED = "EvtOkButtonPressed";
@@ -74,29 +78,34 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	return s != 0;
     }
 
+    private String defaultCharFontNameComplex;
+    private float defaultCharHeightComplex;
+
     private XCheckBox dlgAllRangeCheckBox;
     private XNumericField dlgAyatFromNumericField;
     private XNumericField dlgAyatToNumericField;
     private XComponentContext dlgContext;
     private XDialog dlgDialog;
+    private XListBox dlgFontListBox;
     private XNumericField dlgFontSizeNumericField;
     private XCheckBox dlgNewlineCheckBox;
-    private XListBox dlgSurahListBox;
 
+    private XListBox dlgSurahListBox;
     private boolean selectedAllRangeIndicator;
     private int selectedAyatFrom;
     private int selectedAyatTo;
+    private String selectedFontNameComplex;
     private double selectedFontSize;
     private boolean selectedNewlineIndicator;
-    private short selectedSurahNum;
 
+    private short selectedSurahNum;
     private String[] supportedActions = new String[] { EVENTALLRANGEINDICATORCHANGED, EVENTAYAHFROMCHANGED,
 	    EVENTAYAHTOCHANGED, EVENTOKBUTTONPRESSED, EVENTNEWLINEINDICATORCHANGED, EVENTSURAHCHANGED,
-	    EVENTFONTSIZECHANGED };
+	    EVENTFONTSIZECHANGED, EVENTFONTNAMECHANGED };
 
     public InsertQuranTextDialog(XComponentContext xContext) {
-	    dlgDialog = DialogHelper.createDialog("InsertQuranTextDialog.xdl", xContext, this);
-	    dlgContext = xContext;
+	dlgDialog = DialogHelper.createDialog("InsertQuranTextDialog.xdl", xContext, this);
+	dlgContext = xContext;
     }
 
     @Override
@@ -118,6 +127,9 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	} else if (methodName.equals(EVENTNEWLINEINDICATORCHANGED)) {
 	    dlgHandlerNewLineCheckbox();
 	    return true;
+	} else if (methodName.equals(EVENTFONTNAMECHANGED)) {
+	    dlgHandlerFontListBox();
+	    return true;
 	} else if (methodName.equals(EVENTFONTSIZECHANGED)) {
 	    dlgHandlerFontSizeNumericField();
 	    return true;
@@ -129,15 +141,12 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	return false;
     }
 
-    private void dlgHandlerNewLineCheckbox() {
-	selectedNewlineIndicator = shortToBoolean(dlgNewlineCheckBox.getState());
-
-    }
-
     private void configureDialogOnOpening() {
+	getLODocumentDefaults();
 	initializeSurahListBox();
 	initializeAyatGroupBox();
 	initializeAllRangeCheckBox();
+	initializeFontListBox();
 	initializeFontSizeNumericField();
 	initializeNewlineCheckBox();
     }
@@ -156,11 +165,12 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	    xParagraphCursorPropertySet.setPropertyValue("WritingMode", com.sun.star.text.WritingMode2.RL_TB);
 	    xParagraphCursorPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.RIGHT);
 	    xParagraphCursorPropertySet.setPropertyValue("CharHeightComplex", selectedFontSize);
+	    xParagraphCursorPropertySet.setPropertyValue("CharFontNameComplex", selectedFontNameComplex);
 
-	    QuranReader qrReader = new QuranReader("quran-uthmani.xml", dlgContext);
+	    QuranReader qrReader = new QuranReader("ar", "1", dlgContext);
 	    if (selectedAllRangeIndicator) {
 		if (selectedSurahNum != 1 && selectedSurahNum != 9) {
-		    createOutputAyah(qrReader.getBismillah(), 0, xParagraphCursor);
+		    createOutputAyah(QuranReader.getBismillah(), 0, xParagraphCursor);
 		}
 		List<String> ayat = qrReader.getAllAyatOfSuraNo(selectedSurahNum);
 		for (int i = 0; i < ayat.size(); i++) {
@@ -179,6 +189,23 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	}
     }
 
+    private void createOutputAyah(String ayah, int ayahNo, XParagraphCursor xParagraphCursor) {
+	String leftParenthesis = "\uFD3E";
+	String rightParenthesis = "\uFD3F";
+
+	xParagraphCursor.gotoEnd(false);
+	xParagraphCursor.setString(ayah);
+
+	if (ayahNo != 0) {
+	    xParagraphCursor.gotoEnd(false);
+	    xParagraphCursor.setString(" " + rightParenthesis + numToArabNum(ayahNo) + leftParenthesis);
+	}
+
+	xParagraphCursor.gotoEnd(false);
+	xParagraphCursor.setString(selectedNewlineIndicator ? "\n" : " ");
+
+    }
+
     private void dlgHandlerAllRangeCheckBox() {
 	selectedAllRangeIndicator = shortToBoolean(dlgAllRangeCheckBox.getState());
 
@@ -194,8 +221,17 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 
     }
 
+    private void dlgHandlerFontListBox() {
+	selectedFontNameComplex = dlgFontListBox.getSelectedItem();
+    }
+
     private void dlgHandlerFontSizeNumericField() {
 	selectedFontSize = dlgFontSizeNumericField.getValue();
+    }
+
+    private void dlgHandlerNewLineCheckbox() {
+	selectedNewlineIndicator = shortToBoolean(dlgNewlineCheckBox.getState());
+
     }
 
     private void dlgHandlerOkButton() {
@@ -233,7 +269,15 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 
     }
 
-    private float getDefaultFontSize() throws UnknownPropertyException, WrappedTargetException {
+    private String getDefaultCharFontNameComplex() {
+	return defaultCharFontNameComplex;
+    }
+
+    private float getDefaultCharHeightComplex() {
+	return defaultCharHeightComplex;
+    }
+
+    private void getLODocumentDefaults() {
 	XTextDocument xTextDoc = DocumentHelper.getCurrentDocument(dlgContext);
 	XController xController = xTextDoc.getCurrentController();
 	XTextViewCursorSupplier xTextViewCursorSupplier = DocumentHelper.getCursorSupplier(xController);
@@ -243,7 +287,17 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	XParagraphCursor xParagraphCursor = UnoRuntime.queryInterface(XParagraphCursor.class, xTextCursor);
 	XPropertySet xParagraphCursorPropertySet = DocumentHelper.getPropertySet(xParagraphCursor);
 
-	return (float) xParagraphCursorPropertySet.getPropertyValue("CharHeightComplex");
+	try {
+	    defaultCharHeightComplex = (float) xParagraphCursorPropertySet.getPropertyValue("CharHeightComplex");
+	} catch (UnknownPropertyException | WrappedTargetException e) {
+	    defaultCharHeightComplex = 10;
+	}
+	try {
+	    defaultCharFontNameComplex = (String) xParagraphCursorPropertySet.getPropertyValue("CharFontNameComplex");
+	} catch (UnknownPropertyException | WrappedTargetException e) {
+	    defaultCharFontNameComplex = "No Default set";
+	}
+
     }
 
     @Override
@@ -265,14 +319,26 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	dlgAyatToNumericField = DialogHelper.getNumericField(dlgDialog, "AyatToNumericField");
     }
 
+    private void initializeFontListBox() {
+	final char ALIF = '\u0627';
+
+	dlgFontListBox = DialogHelper.getListBox(dlgDialog, "FontListBox");
+	Locale locale = new Locale.Builder().setScript("ARAB").build();
+	String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames(locale);
+	for (int i = 0; i < fonts.length; i++) {
+	    if (new Font(fonts[i], Font.PLAIN, 10).canDisplay(ALIF)) {
+		dlgFontListBox.addItem(fonts[i], (short) i);
+	    }
+	}
+	selectedFontNameComplex = getDefaultCharFontNameComplex();
+
+	dlgFontListBox.selectItem(selectedFontNameComplex, true);
+    }
+
     private void initializeFontSizeNumericField() {
 	dlgFontSizeNumericField = DialogHelper.getNumericField(dlgDialog, "FontSizeNumericField");
 
-	try {
-	    selectedFontSize = getDefaultFontSize();
-	} catch (UnknownPropertyException | WrappedTargetException e) {
-	    selectedFontSize = 10.0;
-	}
+	selectedFontSize = getDefaultCharHeightComplex();
 
 	dlgFontSizeNumericField.setValue(selectedFontSize);
     }
@@ -292,23 +358,6 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	}
 	dlgSurahListBox.selectItemPos((short) 0, true);
 	selectedSurahNum = (short) (dlgSurahListBox.getSelectedItemPos() + 1);
-    }
-
-    private void createOutputAyah(String ayah, int ayahNo, XParagraphCursor xParagraphCursor) {
-	String leftParenthesis = "\uFD3E";
-	String rightParenthesis = "\uFD3F";
-
-	xParagraphCursor.gotoEnd(false);
-	xParagraphCursor.setString(ayah);
-
-	if (ayahNo != 0) {
-	    xParagraphCursor.gotoEnd(false);
-	    xParagraphCursor.setString(" " + rightParenthesis + numToArabNum(ayahNo) + leftParenthesis);
-	}
-
-	xParagraphCursor.gotoEnd(false);
-	xParagraphCursor.setString(selectedNewlineIndicator ? "\n" : " ");
-
     }
 
     public void show() {

@@ -35,7 +35,9 @@
    <script:event script:event-name="on-textchange" script:macro-name="vnd.sun.star.UNO:EvtFontSizeChanged" script:language="UNO"/>
   </dlg:numericfield>
   <dlg:text dlg:id="SurahNameLabel" dlg:tab-index="14" dlg:left="6" dlg:top="9" dlg:width="24" dlg:height="9" dlg:value="Name:" dlg:valign="center"/>
-  <dlg:menulist dlg:id="FontListBox" dlg:tab-index="15" dlg:left="35" dlg:top="82" dlg:width="60" dlg:height="9" dlg:spin="true"/>
+  <dlg:menulist dlg:id="FontListBox" dlg:tab-index="15" dlg:left="35" dlg:top="82" dlg:width="60" dlg:height="9" dlg:spin="true">
+   <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:EvtFontNameChanged" script:language="UNO"/>
+  </dlg:menulist>
   <dlg:text dlg:id="NewLineLabel" dlg:tab-index="16" dlg:left="6" dlg:top="108" dlg:width="24" dlg:height="10" dlg:value="Newline:" dlg:valign="center"/>
   <dlg:checkbox dlg:id="NewlineCheckBox" dlg:tab-index="17" dlg:left="36" dlg:top="108" dlg:width="10" dlg:height="10" dlg:align="center" dlg:valign="center" dlg:checked="true">
    <script:event script:event-name="on-itemstatechange" script:macro-name="vnd.sun.star.UNO:EvtNewLineIndicatorChanged" script:language="UNO"/>

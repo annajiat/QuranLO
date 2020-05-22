@@ -1,5 +1,5 @@
 bin/
 build/
 dist/
+resources/data/
 types.rdb
-InsertQuranText.jar

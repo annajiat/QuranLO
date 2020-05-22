@@ -34,7 +34,7 @@ import com.sun.star.util.XURLTransformer;
 class FileHelper {
 
     private static final String DIALOG_RESOURCES = "dialog/";
-    private static final String QURAN_RESOURCES = "resources/";
+    private static final String QURAN_RESOURCES = "resources/quran/";
 
     /**
      * Returns a path to a dialog file
