@@ -20,8 +20,12 @@
 package nl.mossoft.loeiqt.helper;
 
 import java.io.IOException;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -41,22 +45,22 @@ import com.sun.star.uno.XComponentContext;
 
 public class QuranReader {
 
-    private static Document doc = null;
+    private static final Map<String, String[]> quranVersions = Collections
+	    .unmodifiableMap(new LinkedHashMap<String, String[]>() {
+		{
+		    put("Arabic", new String[] { "Medina" });
+		    put("English", new String[] { "Sahih International", "Picktal" });
+		    put("Dutch", new String[] { "Siregar" });
+		}
+	    });
+
     private static XPath xpath = null;
 
-    public static String getBismillah() {
-	String bismillah = null;
-	try {
-	    XPathExpression expr = xpath.compile("/quran/surah[@no='1']/ayat[@no='1']/@text");
-	    bismillah = (String) expr.evaluate(doc, XPathConstants.STRING);
-	} catch (XPathExpressionException e) {
-	    e.printStackTrace();
-	}
-	return bismillah;
-
+    public static Map<String, String[]> getAllQuranVersions() {
+	return quranVersions;
     }
 
-    private static String getFilename(String language,String version) {
+    private static String getFilename(String language, String version) {
 	return "QuranText." + language + "." + version + ".xml";
     }
 
@@ -88,7 +92,9 @@ public class QuranReader {
 	return surahSizes[surahno];
     }
 
-    public QuranReader(String language, String version,XComponentContext context) {
+    private Document doc;
+
+    public QuranReader(String language, String version, XComponentContext context) {
 	try {
 	    DocumentBuilderFactory df = DocumentBuilderFactory.newInstance();
 	    df.setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "");
@@ -96,7 +102,7 @@ public class QuranReader {
 	    df.setNamespaceAware(true);
 
 	    DocumentBuilder builder = df.newDocumentBuilder();
-	    doc = builder.parse(FileHelper.getQuranFilePath(getFilename(language,version), context));
+	    doc = builder.parse(FileHelper.getQuranFilePath(getFilename(language, version), context));
 
 	    // Create XPathFactory object
 	    XPathFactory xpathFactory = XPathFactory.newInstance();
@@ -126,8 +132,7 @@ public class QuranReader {
     private String getAyahNoOfSuraNo(int surano, int ayano) {
 	String aya = null;
 	try {
-	    XPathExpression expr = xpath
-		    .compile("/quran/surah[@no='" + surano + "']/ayat[@no='" + ayano + "']/@text");
+	    XPathExpression expr = xpath.compile("/quran/surah[@no='" + surano + "']/ayat[@no='" + ayano + "']/@text");
 	    aya = (String) expr.evaluate(doc, XPathConstants.STRING);
 	} catch (XPathExpressionException e) {
 	    e.printStackTrace();
@@ -142,4 +147,16 @@ public class QuranReader {
 	}
 	return list;
     }
+
+    public String getBismillah() {
+	String bismillah = null;
+	try {
+	    XPathExpression expr = xpath.compile("/quran/surah[@no='1']/ayat[@no='1']/@text");
+	    bismillah = (String) expr.evaluate(doc, XPathConstants.STRING);
+	} catch (XPathExpressionException e) {
+	    e.printStackTrace();
+	}
+	return bismillah;
+    }
+
 }

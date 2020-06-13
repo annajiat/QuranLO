@@ -23,7 +23,6 @@ import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.util.List;
 import java.util.Locale;
-
 import com.sun.star.awt.XCheckBox;
 import com.sun.star.awt.XDialog;
 import com.sun.star.awt.XDialogEventHandler;
@@ -34,6 +33,8 @@ import com.sun.star.beans.UnknownPropertyException;
 import com.sun.star.beans.XPropertySet;
 import com.sun.star.frame.XController;
 import com.sun.star.lang.WrappedTargetException;
+import com.sun.star.style.ParagraphAdjust;
+import com.sun.star.text.ControlCharacter;
 import com.sun.star.text.XParagraphCursor;
 import com.sun.star.text.XText;
 import com.sun.star.text.XTextCursor;
@@ -50,13 +51,21 @@ import nl.mossoft.loeiqt.helper.QuranReader;
 public class InsertQuranTextDialog implements XDialogEventHandler {
 
     private static final String EVENTALLRANGEINDICATORCHANGED = "EvtAllRangeIndicatorChanged";
+    private static final String EVENTARABICFONTNAMECHANGED = "EvtArabicFontNameChanged";
+    private static final String EVENTARABICFONTSIZECHANGED = "EvtArabicFontSizeChanged";
+    private static final String EVENTARABICNEWLINEINDICATORCHANGED = "EvtArabicNewLineIndicatorChanged";
     private static final String EVENTAYAHFROMCHANGED = "EvtAyahFromChanged";
     private static final String EVENTAYAHTOCHANGED = "EvtAyahToChanged";
-    private static final String EVENTFONTNAMECHANGED = "EvtFontNameChanged";
-    private static final String EVENTFONTSIZECHANGED = "EvtFontSizeChanged";
-    private static final String EVENTNEWLINEINDICATORCHANGED = "EvtNewLineIndicatorChanged";
+    private static final String EVENTNONARABICLANGUAGECHANGED = "EvtNonArabicLanguageChanged";
+    private static final String EVENTNONARABICFONTNAMECHANGED = "EvtNonArabicFontNameChanged";
+    private static final String EVENTNONARABICFONTSIZECHANGED = "EvtNonArabicFontSizeChanged";
+    private static final String EVENTNONARABICNEWLINEINDICATORCHANGED = "EvtNonArabicNewLineIndicatorChanged";
     private static final String EVENTOKBUTTONPRESSED = "EvtOkButtonPressed";
     private static final String EVENTSURAHCHANGED = "EvtSurahChanged";
+    private static final String EVENTTRANSLATIONINDICATORCHANGED = "EvtTranslationIndicatorChanged";
+
+    private static final String LPAR = "\uFD3E";
+    private static final String RPAR = "\uFD3F";
 
     private static short booleanToShort(boolean b) {
 	return (short) (b ? 1 : 0);
@@ -78,30 +87,45 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	return s != 0;
     }
 
-    private String defaultCharFontNameComplex;
-    private float defaultCharHeightComplex;
+    private float defaultArabicCharHeight;
+    private String defaultArabicFontName;
+    private float defaultNonArabicCharHeight;
+    private String defaultNonArabicFontName;
 
     private XCheckBox dlgAllRangeCheckBox;
+    private XListBox dlgArabicFontListBox;
+    private XNumericField dlgArabicFontSizeNumericField;
+    private XCheckBox dlgArabicNewlineCheckBox;
     private XNumericField dlgAyatFromNumericField;
     private XNumericField dlgAyatToNumericField;
     private XComponentContext dlgContext;
     private XDialog dlgDialog;
-    private XListBox dlgFontListBox;
-    private XNumericField dlgFontSizeNumericField;
-    private XCheckBox dlgNewlineCheckBox;
-
+    private XListBox dlgNonArabicFontListBox;
+    private XNumericField dlgNonArabicFontSizeNumericField;
+    private XListBox dlgNonArabicLanguageListBox;
+    private XCheckBox dlgNonArabicNewlineCheckBox;
     private XListBox dlgSurahListBox;
+    private XCheckBox dlgTranslationCheckBox;
+
     private boolean selectedAllRangeIndicator;
+    private String selectedArabicFontName;
+    private double selectedArabicFontSize;
+    private boolean selectedArabicNewlineIndicator;
     private int selectedAyatFrom;
     private int selectedAyatTo;
-    private String selectedFontNameComplex;
-    private double selectedFontSize;
-    private boolean selectedNewlineIndicator;
-
+    private String selectedNonArabicFontName;
+    private double selectedNonArabicFontSize;
+    private String selectedNonArabicLanguage;
+    private boolean selectedNonArabicNewlineIndicator;
+    private String selectedNonArabicVersion;
     private short selectedSurahNum;
+    private boolean selectedTranslationIndicator;
+
     private String[] supportedActions = new String[] { EVENTALLRANGEINDICATORCHANGED, EVENTAYAHFROMCHANGED,
-	    EVENTAYAHTOCHANGED, EVENTOKBUTTONPRESSED, EVENTNEWLINEINDICATORCHANGED, EVENTSURAHCHANGED,
-	    EVENTFONTSIZECHANGED, EVENTFONTNAMECHANGED };
+	    EVENTAYAHTOCHANGED, EVENTOKBUTTONPRESSED, EVENTARABICNEWLINEINDICATORCHANGED, EVENTSURAHCHANGED,
+	    EVENTARABICFONTSIZECHANGED, EVENTARABICFONTNAMECHANGED, EVENTNONARABICLANGUAGECHANGED,
+	    EVENTNONARABICFONTNAMECHANGED, EVENTNONARABICFONTSIZECHANGED, EVENTNONARABICNEWLINEINDICATORCHANGED,
+	    EVENTTRANSLATIONINDICATORCHANGED };
 
     public InsertQuranTextDialog(XComponentContext xContext) {
 	dlgDialog = DialogHelper.createDialog("InsertQuranTextDialog.xdl", xContext, this);
@@ -124,17 +148,32 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	} else if (methodName.equals(EVENTOKBUTTONPRESSED)) {
 	    dlgHandlerOkButton();
 	    return true;
-	} else if (methodName.equals(EVENTNEWLINEINDICATORCHANGED)) {
-	    dlgHandlerNewLineCheckbox();
+	} else if (methodName.equals(EVENTARABICNEWLINEINDICATORCHANGED)) {
+	    dlgHandlerArabicNewLineCheckbox();
 	    return true;
-	} else if (methodName.equals(EVENTFONTNAMECHANGED)) {
-	    dlgHandlerFontListBox();
+	} else if (methodName.equals(EVENTARABICFONTNAMECHANGED)) {
+	    dlgHandlerArabicFontListBox();
 	    return true;
-	} else if (methodName.equals(EVENTFONTSIZECHANGED)) {
-	    dlgHandlerFontSizeNumericField();
+	} else if (methodName.equals(EVENTARABICFONTSIZECHANGED)) {
+	    dlgHandlerArabicFontSizeNumericField();
 	    return true;
 	} else if (methodName.equals(EVENTSURAHCHANGED)) {
 	    dlgHandlerSurahListBox();
+	    return true;
+	} else if (methodName.equals(EVENTNONARABICLANGUAGECHANGED)) {
+	    dlgHandlerNonArabicLanguageListBox();
+	    return true;
+	} else if (methodName.equals(EVENTNONARABICFONTNAMECHANGED)) {
+	    dlgHandlerNonArabicFontListBox();
+	    return true;
+	} else if (methodName.equals(EVENTNONARABICFONTSIZECHANGED)) {
+	    dlgHandlerNonArabicFontSizeNumericField();
+	    return true;
+	} else if (methodName.equals(EVENTNONARABICNEWLINEINDICATORCHANGED)) {
+	    dlgHandlerNonArabicNewLineCheckbox();
+	    return true;
+	} else if (methodName.equals(EVENTTRANSLATIONINDICATORCHANGED)) {
+	    dlgHandlerTranslationCheckBox();
 	    return true;
 	}
 
@@ -146,9 +185,14 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	initializeSurahListBox();
 	initializeAyatGroupBox();
 	initializeAllRangeCheckBox();
-	initializeFontListBox();
-	initializeFontSizeNumericField();
-	initializeNewlineCheckBox();
+	initializeArabicFontListBox();
+	initializeArabicFontSizeNumericField();
+	initializeArabicNewlineCheckBox();
+	initializeNonArabicLanguageListBox();
+	initializeNonArabicFontListBox();
+	initializeNonArabicFontSizeNumericField();
+	initializeNonArabicNewlineCheckBox();
+	initializeTranslationCheckBox();
     }
 
     private void createOutput() {
@@ -162,54 +206,159 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	XPropertySet xParagraphCursorPropertySet = DocumentHelper.getPropertySet(xParagraphCursor);
 
 	try {
-	    xParagraphCursorPropertySet.setPropertyValue("WritingMode", com.sun.star.text.WritingMode2.RL_TB);
-	    xParagraphCursorPropertySet.setPropertyValue("ParaAdjust", com.sun.star.style.ParagraphAdjust.RIGHT);
-	    xParagraphCursorPropertySet.setPropertyValue("CharHeightComplex", selectedFontSize);
-	    xParagraphCursorPropertySet.setPropertyValue("CharFontNameComplex", selectedFontNameComplex);
+	    xParagraphCursorPropertySet.setPropertyValue("CharFontName", selectedNonArabicFontName);
+	    xParagraphCursorPropertySet.setPropertyValue("CharFontNameComplex", selectedArabicFontName);
+	    xParagraphCursorPropertySet.setPropertyValue("CharHeight", selectedNonArabicFontSize);
+	    xParagraphCursorPropertySet.setPropertyValue("CharHeightComplex", selectedArabicFontSize);
 
-	    QuranReader qrReader = new QuranReader("ar", "1", dlgContext);
-	    if (selectedAllRangeIndicator) {
-		if (selectedSurahNum != 1 && selectedSurahNum != 9) {
-		    createOutputAyah(QuranReader.getBismillah(), 0, xParagraphCursor);
-		}
-		List<String> ayat = qrReader.getAllAyatOfSuraNo(selectedSurahNum);
-		for (int i = 0; i < ayat.size(); i++) {
-		    createOutputAyah(ayat.get(i), i + 1, xParagraphCursor);
+	    if (selectedTranslationIndicator) {
+		QuranReader ar = new QuranReader("Arabic", "Medina", dlgContext);
+		QuranReader tr = new QuranReader(selectedNonArabicLanguage, selectedNonArabicVersion, dlgContext);
+
+		if (selectedAllRangeIndicator) {
+		    List<String> ayatAr = ar.getAllAyatOfSuraNo(selectedSurahNum);
+		    List<String> ayatTr = tr.getAllAyatOfSuraNo(selectedSurahNum);
+
+		    if (selectedArabicNewlineIndicator) {
+			if (selectedSurahNum != 1 && selectedSurahNum != 9) {
+			    addParagraph(xText, xParagraphCursor, ar.getBismillah(),
+				    com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
+			    addParagraph(xText, xParagraphCursor, tr.getBismillah(),
+				    com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
+			}
+
+			for (int i = 0; i < ayatAr.size(); i++) {
+			    addParagraph(xText, xParagraphCursor,
+				    ayatAr.get(i) + " " + RPAR + numToArabNum(i + 1) + LPAR + " ",
+				    com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
+			    addParagraph(xText, xParagraphCursor, "(" + (i + 1) + ") " + ayatTr.get(i),
+				    com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
+			}
+		    } else {
+			String TlNl = (selectedNonArabicNewlineIndicator) ? "\n" : "";
+			String lineAr = (selectedSurahNum != 1 && selectedSurahNum != 9) ? ar.getBismillah() + " "
+				: " ";
+			String lineTr = (selectedSurahNum != 1 && selectedSurahNum != 9) ? tr.getBismillah() + " "
+				: TlNl;
+			for (int i = 0; i < ayatAr.size(); i++) {
+			    lineAr = lineAr + ayatAr.get(i) + " " + RPAR + numToArabNum(i + 1) + LPAR + " ";
+			    lineTr = lineTr + "(" + (i + 1) + ") " + ayatTr.get(i) + " " + TlNl;
+			}
+			addParagraph(xText, xParagraphCursor, lineAr, com.sun.star.style.ParagraphAdjust.RIGHT,
+				com.sun.star.text.WritingMode2.RL_TB);
+			addParagraph(xText, xParagraphCursor, lineTr, com.sun.star.style.ParagraphAdjust.LEFT,
+				com.sun.star.text.WritingMode2.LR_TB);
+		    }
+		} else {
+		    List<String> ayatAr = ar.getAyatFromToOfSuraNo(selectedSurahNum, selectedAyatFrom, selectedAyatTo);
+		    List<String> ayatTr = tr.getAyatFromToOfSuraNo(selectedSurahNum, selectedAyatFrom, selectedAyatTo);
+
+		    if (selectedArabicNewlineIndicator) {
+			for (int i = 0; i < ayatAr.size(); i++) {
+			    addParagraph(xText, xParagraphCursor,
+				    ayatAr.get(i) + " " + RPAR + numToArabNum(selectedAyatFrom + i) + LPAR + " ",
+				    com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
+			    addParagraph(xText, xParagraphCursor,
+				    "(" + (selectedAyatFrom + i) + ") " + ayatTr.get(i) + " ",
+				    com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
+			}
+		    } else {
+			String TlNl = (selectedNonArabicNewlineIndicator) ? "\n" : "";
+			String lineAr = (selectedSurahNum != 1 && selectedSurahNum != 9) ? ar.getBismillah() : " ";
+			String lineTr = (selectedSurahNum != 1 && selectedSurahNum != 9) ? tr.getBismillah() : TlNl;
+			for (int i = 0; i < ayatAr.size(); i++) {
+			    lineAr = lineAr + ayatAr.get(i) + " " + RPAR + numToArabNum(selectedAyatFrom + i) + LPAR
+				    + " ";
+			    lineTr = lineTr + "(" + (selectedAyatFrom + i) + ") " + ayatTr.get(i) + " " + TlNl;
+			}
+			addParagraph(xText, xParagraphCursor, lineAr, com.sun.star.style.ParagraphAdjust.RIGHT,
+				com.sun.star.text.WritingMode2.RL_TB);
+			addParagraph(xText, xParagraphCursor, lineTr, com.sun.star.style.ParagraphAdjust.LEFT,
+				com.sun.star.text.WritingMode2.LR_TB);
+		    }
 		}
 
 	    } else {
-		List<String> ayat = qrReader.getAyatFromToOfSuraNo(selectedSurahNum, selectedAyatFrom, selectedAyatTo);
-		for (int i = 0; i < ayat.size(); i++) {
-		    createOutputAyah(ayat.get(i), i + selectedAyatFrom, xParagraphCursor);
+		QuranReader ar = new QuranReader("Arabic", "Medina", dlgContext);
+
+		if (selectedAllRangeIndicator) {
+		    List<String> ayatAr = ar.getAllAyatOfSuraNo(selectedSurahNum);
+
+		    if (selectedArabicNewlineIndicator) {
+			if (selectedSurahNum != 1 && selectedSurahNum != 9) {
+			    addParagraph(xText, xParagraphCursor, ar.getBismillah(),
+				    com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
+			}
+
+			for (int i = 0; i < ayatAr.size(); i++) {
+			    addParagraph(xText, xParagraphCursor,
+				    ayatAr.get(i) + " " + RPAR + numToArabNum(i + 1) + LPAR + " ",
+				    com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
+			}
+		    } else {
+			String lineAr = (selectedSurahNum != 1 && selectedSurahNum != 9) ? ar.getBismillah() + " "
+				: " ";
+			for (int i = 0; i < ayatAr.size(); i++) {
+			    lineAr = lineAr + ayatAr.get(i) + " " + RPAR + numToArabNum(i + 1) + LPAR + " ";
+			}
+			addParagraph(xText, xParagraphCursor, lineAr, com.sun.star.style.ParagraphAdjust.RIGHT,
+				com.sun.star.text.WritingMode2.RL_TB);
+		    }
+		} else {
+		    List<String> ayatAr = ar.getAyatFromToOfSuraNo(selectedSurahNum, selectedAyatFrom, selectedAyatTo);
+
+		    if (selectedArabicNewlineIndicator) {
+			for (int i = 0; i < ayatAr.size(); i++) {
+			    addParagraph(xText, xParagraphCursor,
+				    ayatAr.get(i) + " " + RPAR + numToArabNum(selectedAyatFrom + i) + LPAR + " ",
+				    com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
+			}
+		    } else {
+			String lineAr = (selectedSurahNum != 1 && selectedSurahNum != 9) ? ar.getBismillah() + " " : "";
+			for (int i = 0; i < ayatAr.size(); i++) {
+			    lineAr = lineAr + ayatAr.get(i) + " " + RPAR + numToArabNum(selectedAyatFrom + i) + LPAR
+				    + " ";
+			}
+			addParagraph(xText, xParagraphCursor, lineAr, com.sun.star.style.ParagraphAdjust.RIGHT,
+				com.sun.star.text.WritingMode2.RL_TB);
+		    }
 		}
 	    }
-	} catch (IllegalArgumentException | UnknownPropertyException | PropertyVetoException
+	} catch (com.sun.star.lang.IllegalArgumentException | UnknownPropertyException | PropertyVetoException
 		| WrappedTargetException e) {
 	    e.printStackTrace();
 	}
     }
 
-    private void createOutputAyah(String ayah, int ayahNo, XParagraphCursor xParagraphCursor) {
-	String leftParenthesis = "\uFD3E";
-	String rightParenthesis = "\uFD3F";
+    private void addParagraph(XText xText, XParagraphCursor xParagraphCursor, String paragraph,
+	    ParagraphAdjust alignment, short writingMode) throws com.sun.star.lang.IllegalArgumentException,
+	    UnknownPropertyException, PropertyVetoException, WrappedTargetException {
 
-	xParagraphCursor.gotoEnd(false);
-	xParagraphCursor.setString(ayah);
+	xParagraphCursor.gotoEndOfParagraph(false);
+	xText.insertControlCharacter(xParagraphCursor, ControlCharacter.PARAGRAPH_BREAK, false);
 
-	if (ayahNo != 0) {
-	    xParagraphCursor.gotoEnd(false);
-	    xParagraphCursor.setString(" " + rightParenthesis + numToArabNum(ayahNo) + leftParenthesis);
-	}
-
-	xParagraphCursor.gotoEnd(false);
-	xParagraphCursor.setString(selectedNewlineIndicator ? "\n" : " ");
-
+	XPropertySet xParagraphCursorPropertySet = DocumentHelper.getPropertySet(xParagraphCursor);
+	xParagraphCursorPropertySet.setPropertyValue("ParaAdjust", alignment);
+	xParagraphCursorPropertySet.setPropertyValue("WritingMode", writingMode);
+	xText.insertString(xParagraphCursor, paragraph, false);
     }
 
     private void dlgHandlerAllRangeCheckBox() {
 	selectedAllRangeIndicator = shortToBoolean(dlgAllRangeCheckBox.getState());
 
 	enableAyatGroupBox(!selectedAllRangeIndicator);
+    }
+
+    private void dlgHandlerArabicFontListBox() {
+	selectedArabicFontName = dlgArabicFontListBox.getSelectedItem();
+    }
+
+    private void dlgHandlerArabicFontSizeNumericField() {
+	selectedArabicFontSize = dlgArabicFontSizeNumericField.getValue();
+    }
+
+    private void dlgHandlerArabicNewLineCheckbox() {
+	selectedArabicNewlineIndicator = shortToBoolean(dlgArabicNewlineCheckBox.getState());
     }
 
     private void dlgHandlerAyahFromNumericField() {
@@ -221,17 +370,24 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 
     }
 
-    private void dlgHandlerFontListBox() {
-	selectedFontNameComplex = dlgFontListBox.getSelectedItem();
+    private void dlgHandlerNonArabicFontListBox() {
+	selectedNonArabicFontName = dlgNonArabicFontListBox.getSelectedItem();
     }
 
-    private void dlgHandlerFontSizeNumericField() {
-	selectedFontSize = dlgFontSizeNumericField.getValue();
+    private void dlgHandlerNonArabicFontSizeNumericField() {
+	selectedNonArabicFontSize = dlgNonArabicFontSizeNumericField.getValue();
     }
 
-    private void dlgHandlerNewLineCheckbox() {
-	selectedNewlineIndicator = shortToBoolean(dlgNewlineCheckBox.getState());
+    private void dlgHandlerNonArabicLanguageListBox() {
+	String selectedNonArabicitem = dlgNonArabicLanguageListBox.getSelectedItem();
 
+	String[] itemsSelected = selectedNonArabicitem.split("[(]");
+	selectedNonArabicLanguage = itemsSelected[0].trim();
+	selectedNonArabicVersion = itemsSelected[1].replace(")", " ").trim().replace(" ", "_");
+    }
+
+    private void dlgHandlerNonArabicNewLineCheckbox() {
+	selectedNonArabicNewlineIndicator = shortToBoolean(dlgNonArabicNewlineCheckBox.getState());
     }
 
     private void dlgHandlerOkButton() {
@@ -243,13 +399,18 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	selectedSurahNum = (short) (dlgSurahListBox.getSelectedItemPos() + 1);
     }
 
+    private void dlgHandlerTranslationCheckBox() {
+	selectedTranslationIndicator = shortToBoolean(dlgTranslationCheckBox.getState());
+
+	enableNonArabicGroupBox(selectedTranslationIndicator);
+    }
+
     private void enableAyatGroupBox(boolean enable) {
 	try {
 	    DialogHelper.enableComponent(dlgDialog, "AyatFromLabel", enable);
 	    DialogHelper.enableComponent(dlgDialog, "AyatFromNumericField", enable);
 	    DialogHelper.enableComponent(dlgDialog, "AyatToLabel", enable);
 	    DialogHelper.enableComponent(dlgDialog, "AyatToNumericField", enable);
-	    DialogHelper.enableComponent(dlgDialog, "AyatGroupBox", enable);
 
 	    if (enable) {
 		selectedAyatFrom = 1;
@@ -266,15 +427,44 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 		| WrappedTargetException e) {
 	    e.printStackTrace();
 	}
+    }
+
+    private void enableNonArabicGroupBox(boolean enable) {
+	try {
+	    DialogHelper.enableComponent(dlgDialog, "NonArabicGroupBox", enable);
+	    DialogHelper.enableComponent(dlgDialog, "NonArabicLanguageListBox", enable);
+	    DialogHelper.enableComponent(dlgDialog, "NonArabicLanguageLabel", enable);
+	    DialogHelper.enableComponent(dlgDialog, "NonArabicFontLabel", enable);
+	    DialogHelper.enableComponent(dlgDialog, "NonArabicFontListBox", enable);
+	    DialogHelper.enableComponent(dlgDialog, "NonArabicFontSizeLabel", enable);
+	    DialogHelper.enableComponent(dlgDialog, "NonArabicFontSizeNumericField", enable);
+	    DialogHelper.enableComponent(dlgDialog, "NonArabicNewLineLabel", enable);
+	    DialogHelper.enableComponent(dlgDialog, "NonArabicNewlineCheckBox", enable);
+	    if (enable) {
+		dlgNonArabicNewlineCheckBox.setState(booleanToShort(selectedArabicNewlineIndicator));
+	    } else {
+		dlgNonArabicNewlineCheckBox.setState(booleanToShort(false));
+	    }
+	} catch (UnknownPropertyException | PropertyVetoException | WrappedTargetException e) {
+	    e.printStackTrace();
+	}
 
     }
 
-    private String getDefaultCharFontNameComplex() {
-	return defaultCharFontNameComplex;
+    private float getDefaultArabicCharHeight() {
+	return defaultArabicCharHeight;
     }
 
-    private float getDefaultCharHeightComplex() {
-	return defaultCharHeightComplex;
+    private String getDefaultArabicFontName() {
+	return defaultArabicFontName;
+    }
+
+    private float getDefaultNonArabicCharHeight() {
+	return defaultNonArabicCharHeight;
+    }
+
+    private String getDefaultNonArabicFontName() {
+	return defaultNonArabicFontName;
     }
 
     private void getLODocumentDefaults() {
@@ -288,14 +478,24 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	XPropertySet xParagraphCursorPropertySet = DocumentHelper.getPropertySet(xParagraphCursor);
 
 	try {
-	    defaultCharHeightComplex = (float) xParagraphCursorPropertySet.getPropertyValue("CharHeightComplex");
+	    defaultArabicCharHeight = (float) xParagraphCursorPropertySet.getPropertyValue("CharHeightComplex");
 	} catch (UnknownPropertyException | WrappedTargetException e) {
-	    defaultCharHeightComplex = 10;
+	    defaultArabicCharHeight = 10;
 	}
 	try {
-	    defaultCharFontNameComplex = (String) xParagraphCursorPropertySet.getPropertyValue("CharFontNameComplex");
+	    defaultArabicFontName = (String) xParagraphCursorPropertySet.getPropertyValue("CharFontNameComplex");
 	} catch (UnknownPropertyException | WrappedTargetException e) {
-	    defaultCharFontNameComplex = "No Default set";
+	    defaultArabicFontName = "No Default set";
+	}
+	try {
+	    defaultNonArabicFontName = (String) xParagraphCursorPropertySet.getPropertyValue("CharFontName");
+	} catch (UnknownPropertyException | WrappedTargetException e) {
+	    defaultNonArabicFontName = "No Default set";
+	}
+	try {
+	    defaultNonArabicCharHeight = (float) xParagraphCursorPropertySet.getPropertyValue("CharHeight");
+	} catch (UnknownPropertyException | WrappedTargetException e) {
+	    defaultNonArabicCharHeight = 10;
 	}
 
     }
@@ -314,40 +514,95 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	enableAyatGroupBox(!selectedAllRangeIndicator);
     }
 
+    private void initializeArabicFontListBox() {
+	final char ALIF = '\u0627';
+
+	dlgArabicFontListBox = DialogHelper.getListBox(dlgDialog, "ArabicFontListBox");
+	Locale locale = new Locale.Builder().setScript("ARAB").build();
+	String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames(locale);
+	for (int i = 0; i < fonts.length; i++) {
+	    if (new Font(fonts[i], Font.PLAIN, 10).canDisplay(ALIF)) {
+		dlgArabicFontListBox.addItem(fonts[i], (short) i);
+	    }
+	}
+	selectedArabicFontName = getDefaultArabicFontName();
+
+	dlgArabicFontListBox.selectItem(selectedArabicFontName, true);
+    }
+
+    private void initializeArabicFontSizeNumericField() {
+	dlgArabicFontSizeNumericField = DialogHelper.getNumericField(dlgDialog, "ArabicFontSizeNumericField");
+
+	selectedArabicFontSize = getDefaultArabicCharHeight();
+
+	dlgArabicFontSizeNumericField.setValue(selectedArabicFontSize);
+    }
+
+    private void initializeArabicNewlineCheckBox() {
+	dlgArabicNewlineCheckBox = DialogHelper.getCheckbox(dlgDialog, "ArabicNewlineCheckBox");
+
+	dlgArabicNewlineCheckBox.setState(booleanToShort(true));
+	selectedArabicNewlineIndicator = shortToBoolean(dlgArabicNewlineCheckBox.getState());
+    }
+
     private void initializeAyatGroupBox() {
 	dlgAyatFromNumericField = DialogHelper.getNumericField(dlgDialog, "AyatFromNumericField");
 	dlgAyatToNumericField = DialogHelper.getNumericField(dlgDialog, "AyatToNumericField");
     }
 
-    private void initializeFontListBox() {
-	final char ALIF = '\u0627';
+    private void initializeNonArabicFontListBox() {
+	final char A = '\u0061';
 
-	dlgFontListBox = DialogHelper.getListBox(dlgDialog, "FontListBox");
-	Locale locale = new Locale.Builder().setScript("ARAB").build();
+	dlgNonArabicFontListBox = DialogHelper.getListBox(dlgDialog, "NonArabicFontListBox");
+
+	Locale locale = new Locale.Builder().setScript("LATN").build();
 	String fonts[] = GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames(locale);
 	for (int i = 0; i < fonts.length; i++) {
-	    if (new Font(fonts[i], Font.PLAIN, 10).canDisplay(ALIF)) {
-		dlgFontListBox.addItem(fonts[i], (short) i);
+	    if (new Font(fonts[i], Font.PLAIN, 10).canDisplay(A)) {
+		dlgNonArabicFontListBox.addItem(fonts[i], (short) i);
 	    }
 	}
-	selectedFontNameComplex = getDefaultCharFontNameComplex();
+	selectedNonArabicFontName = getDefaultNonArabicFontName();
 
-	dlgFontListBox.selectItem(selectedFontNameComplex, true);
+	dlgNonArabicFontListBox.selectItem(selectedNonArabicFontName, true);
     }
 
-    private void initializeFontSizeNumericField() {
-	dlgFontSizeNumericField = DialogHelper.getNumericField(dlgDialog, "FontSizeNumericField");
+    private void initializeNonArabicFontSizeNumericField() {
+	dlgNonArabicFontSizeNumericField = DialogHelper.getNumericField(dlgDialog, "NonArabicFontSizeNumericField");
 
-	selectedFontSize = getDefaultCharHeightComplex();
+	selectedNonArabicFontSize = getDefaultNonArabicCharHeight();
 
-	dlgFontSizeNumericField.setValue(selectedFontSize);
+	dlgNonArabicFontSizeNumericField.setValue(selectedNonArabicFontSize);
+
     }
 
-    private void initializeNewlineCheckBox() {
-	dlgNewlineCheckBox = DialogHelper.getCheckbox(dlgDialog, "NewlineCheckBox");
+    private void initializeNonArabicLanguageListBox() {
+	dlgNonArabicLanguageListBox = DialogHelper.getListBox(dlgDialog, "NonArabicLanguageListBox");
 
-	dlgNewlineCheckBox.setState(booleanToShort(true));
-	selectedNewlineIndicator = shortToBoolean(dlgNewlineCheckBox.getState());
+	QuranReader.getAllQuranVersions().entrySet().stream().forEach((entry) -> {
+	    String currentKey = entry.getKey();
+	    String[] currentValue = entry.getValue();
+	    for (int i = 0; i < currentValue.length; i++) {
+		if (!currentKey.equals("Arabic")) {
+		    dlgNonArabicLanguageListBox.addItem(currentKey + " (" + currentValue[i] + ")", (short) i);
+		}
+	    }
+	});
+
+	dlgNonArabicLanguageListBox.selectItemPos((short) 0, true);
+
+	String selectedNonArabicitem = dlgNonArabicLanguageListBox.getSelectedItem();
+
+	String[] itemsSelected = selectedNonArabicitem.split("[(]");
+	selectedNonArabicLanguage = itemsSelected[0].trim();
+	selectedNonArabicVersion = itemsSelected[1].replace(")", " ").trim().replace(" ", "_");
+    }
+
+    private void initializeNonArabicNewlineCheckBox() {
+	dlgNonArabicNewlineCheckBox = DialogHelper.getCheckbox(dlgDialog, "NonArabicNewlineCheckBox");
+
+	dlgNonArabicNewlineCheckBox.setState(booleanToShort(true));
+	selectedNonArabicNewlineIndicator = shortToBoolean(dlgNonArabicNewlineCheckBox.getState());
     }
 
     private void initializeSurahListBox() {
@@ -358,6 +613,15 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
 	}
 	dlgSurahListBox.selectItemPos((short) 0, true);
 	selectedSurahNum = (short) (dlgSurahListBox.getSelectedItemPos() + 1);
+    }
+
+    private void initializeTranslationCheckBox() {
+	dlgTranslationCheckBox = DialogHelper.getCheckbox(dlgDialog, "TranslationCheckBox");
+
+	dlgTranslationCheckBox.setState(booleanToShort(false));
+	selectedTranslationIndicator = shortToBoolean(dlgTranslationCheckBox.getState());
+
+	enableNonArabicGroupBox(selectedTranslationIndicator);
     }
 
     public void show() {
