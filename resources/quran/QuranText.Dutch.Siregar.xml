@@ -1,22 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-
-#=====================================================================
-#
-#  Quran Translation
-#  Name: Siregar
-#  Translator: Sofian S. Siregar
-#  Language: Dutch
-#  ID: nl.siregar
-#  Last Update: August 5, 2012
-#  Source: Tanzil.net
-#
-#=====================================================================
-    
--->
 <quran
-  language="nl"
-  version="Siregar">
+  language="Dutch"
+  version="Siregar"
+  translator="Sofian S. Siregar"
+  date="20120805"
+  source="Tanzil.net">
   <surah
     no="1"
     name="الفاتحة">
