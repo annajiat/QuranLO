@@ -256,9 +256,9 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
           } else {
             String tlnl = (selectedNonArabicNewlineIndicator) ? "\n" : "";
             String lineAr =
-                (selectedSurahNum != 1 && selectedSurahNum != 9) ? ar.getBismillah() + " " : " ";
+                (selectedSurahNum != 1 && selectedSurahNum != 9) ? ar.getBismillah() + "\n " : " ";
             String lineTr =
-                (selectedSurahNum != 1 && selectedSurahNum != 9) ? tr.getBismillah() + " " : tlnl;
+                (selectedSurahNum != 1 && selectedSurahNum != 9) ? tr.getBismillah() + "\n" : tlnl;
             for (int i = 0; i < ayatAr.size(); i++) {
               lineAr = lineAr + ayatAr.get(i) + " " + RPAR + numToArabNum(i + 1) + LPAR + " ";
               lineTr = lineTr + "(" + (i + 1) + ") " + ayatTr.get(i) + " " + tlnl;

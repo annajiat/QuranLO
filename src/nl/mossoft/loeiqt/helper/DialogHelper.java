@@ -17,8 +17,6 @@
 
 package nl.mossoft.loeiqt.helper;
 
-import java.io.File;
-
 import com.sun.star.awt.MessageBoxType;
 import com.sun.star.awt.XCheckBox;
 import com.sun.star.awt.XControl;
@@ -39,8 +37,10 @@ import com.sun.star.lang.WrappedTargetException;
 import com.sun.star.uno.Exception;
 import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
+import java.io.File;
 
 /**
+ * Creates Dialogs from XDL file.
  * @author abdullah
  *
  */

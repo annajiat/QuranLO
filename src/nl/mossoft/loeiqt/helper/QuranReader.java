@@ -37,6 +37,15 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+/**
+ * Helper Class for reading Qur'an text from xml source.
+ * @author abdullah
+ *
+ */
+/**
+ * @author abdullah
+ *
+ */
 public class QuranReader {
 
   private static final Map<String, String[]> quranVersions =
@@ -59,6 +68,11 @@ public class QuranReader {
     return "QuranText." + language + "." + version + ".xml";
   }
 
+  /**
+   * Provides the name of a surah based on its number. 
+   * @param surahno number of surah
+   * @return name of surah
+   */
   public static String getSurahName(int surahno) {
     final String[] surahs = new String[] {"Al-Fatihah", "Al-Baqarah", "Aal-e-Imran", "An-Nisa",
         "Al-Ma'idah", "Al-An'am", "Al-A'raf", "Al-Anfal", "At-Tawbah", "Yunus", "Hud", "Yusuf",
