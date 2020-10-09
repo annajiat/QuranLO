@@ -24,6 +24,5 @@
 	<natures>
 		<nature>org.libreoffice.ide.eclipse.core.unonature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
-		<nature>net.sf.eclipsecs.core.CheckstyleNature</nature>
 	</natures>
 </projectDescription>

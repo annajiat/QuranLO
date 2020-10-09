@@ -43,15 +43,15 @@ class FileHelper {
   /**
    * Returns a file path for a file in the installed extension, or null on failure.
    */
-  private static File getFilePath(String file, XComponentContext xContext) {
+  private static File getFilePath(String file, XComponentContext xcontext) {
     XPackageInformationProvider xpackageInformationProvider =
-        PackageInformationProvider.get(xContext);
+        PackageInformationProvider.get(xcontext);
     String location =
         xpackageInformationProvider.getPackageLocation("nl.mossoft.loeiqt.insertqurantext");
     Object otransformer;
     try {
-      otransformer = xContext.getServiceManager()
-          .createInstanceWithContext("com.sun.star.util.URLTransformer", xContext);
+      otransformer = xcontext.getServiceManager()
+          .createInstanceWithContext("com.sun.star.util.URLTransformer", xcontext);
     } catch (Exception e) {
       e.printStackTrace();
       return null;
@@ -78,10 +78,10 @@ class FileHelper {
   }
 
   /**
-   * Returns a path to a Quran file
+   * Returns a path to a Quran file.
    */
-  static File getQuranFilePath(String xdlFile, XComponentContext xContext) {
-    return getFilePath(QURAN_RESOURCES + xdlFile, xContext);
+  static File getQuranFilePath(String xdlFile, XComponentContext xcontext) {
+    return getFilePath(QURAN_RESOURCES + xdlFile, xcontext);
   }
 
 }

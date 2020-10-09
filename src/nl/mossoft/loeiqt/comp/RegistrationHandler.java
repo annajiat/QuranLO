@@ -30,15 +30,14 @@
 
 package nl.mossoft.loeiqt.comp;
 
+import com.sun.star.lang.XSingleComponentFactory;
+import com.sun.star.registry.XRegistryKey;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-
-import com.sun.star.lang.XSingleComponentFactory;
-import com.sun.star.registry.XRegistryKey;
 
 /**
  * Component main registration class.
@@ -67,14 +66,14 @@ public class RegistrationHandler {
   public static XSingleComponentFactory __getComponentFactory(String implementationName) {
     XSingleComponentFactory factory = null;
 
-    Class[] classes = findServicesImplementationClasses();
+    Class<?>[] classes = findServicesImplementationClasses();
 
     int i = 0;
     while (i < classes.length && factory == null) {
-      Class clazz = classes[i];
+      Class<?> clazz = classes[i];
       if (implementationName.equals(clazz.getCanonicalName())) {
         try {
-          Class[] getTypes = new Class[] {String.class};
+          Class<?>[] getTypes = new Class[] {String.class};
           Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
           Object o = getFactoryMethod.invoke(null, implementationName);
           factory = (XSingleComponentFactory) o;
@@ -105,14 +104,14 @@ public class RegistrationHandler {
    */
   public static boolean __writeRegistryServiceInfo(XRegistryKey xRegistryKey) {
 
-    Class[] classes = findServicesImplementationClasses();
+    Class<?>[] classes = findServicesImplementationClasses();
 
     boolean success = true;
     int i = 0;
     while (i < classes.length && success) {
-      Class clazz = classes[i];
+      Class<?> clazz = classes[i];
       try {
-        Class[] writeTypes = new Class[] {XRegistryKey.class};
+        Class<?>[] writeTypes = new Class[] {XRegistryKey.class};
         Method getFactoryMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
         Object o = getFactoryMethod.invoke(null, xRegistryKey);
         success = success && ((Boolean) o).booleanValue();
@@ -128,9 +127,9 @@ public class RegistrationHandler {
   /**
    * @return all the UNO implementation classes.
    */
-  private static Class[] findServicesImplementationClasses() {
+  private static Class<?>[] findServicesImplementationClasses() {
 
-    ArrayList<Class> classes = new ArrayList<Class>();
+    ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
 
     InputStream in = RegistrationHandler.class.getResourceAsStream("RegistrationHandler.classes");
     LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
@@ -141,10 +140,10 @@ public class RegistrationHandler {
         if (!line.equals("")) {
           line = line.trim();
           try {
-            Class clazz = Class.forName(line);
+            Class<?> clazz = Class.forName(line);
 
-            Class[] writeTypes = new Class[] {XRegistryKey.class};
-            Class[] getTypes = new Class[] {String.class};
+            Class<?>[] writeTypes = new Class[] {XRegistryKey.class};
+            Class<?>[] getTypes = new Class[] {String.class};
 
             Method writeRegMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
             Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);

@@ -39,10 +39,7 @@ import org.xml.sax.SAXException;
 
 /**
  * Helper Class for reading Qur'an text from xml source.
- * @author abdullah
- *
- */
-/**
+ * 
  * @author abdullah
  *
  */
@@ -50,11 +47,14 @@ public class QuranReader {
 
   private static final Map<String, String[]> quranVersions =
       Collections.unmodifiableMap(new LinkedHashMap<String, String[]>() {
+
+        private static final long serialVersionUID = -6419028097687353228L;
+
         {
-          put("Indonesian", new String[] {"Ministry of Religious Affairs"});
-          put("English", new String[] {"Sahih International", "Pickthall"});
-          put("Dutch", new String[] {"Leemhuis", "Siregar"});
           put("Arabic", new String[] {"Medina"});
+          put("Dutch", new String[] {"Leemhuis", "Siregar"});
+          put("English", new String[] {"Sahih International", "Pickthall"});
+          put("Indonesian", new String[] {"Ministry of Religious Affairs"});
         }
       });
 
@@ -69,7 +69,8 @@ public class QuranReader {
   }
 
   /**
-   * Provides the name of a surah based on its number. 
+   * Provides the name of a surah based on its number.
+   * 
    * @param surahno number of surah
    * @return name of surah
    */
@@ -94,6 +95,12 @@ public class QuranReader {
     return surahs[surahno];
   }
 
+  /**
+   * Returns the number of ayats in a surah.
+   * 
+   * @param surahno the number of the surah
+   * @return the number
+   */
   public static int getSurahSize(int surahno) {
     final int[] surahSizes = new int[] {7, 286, 200, 176, 120, 165, 206, 75, 129, 109, 123, 111, 43,
         52, 99, 128, 111, 110, 98, 135, 112, 78, 118, 64, 77, 227, 93, 88, 69, 60, 34, 30, 73, 54,
@@ -104,8 +111,33 @@ public class QuranReader {
     return surahSizes[surahno];
   }
 
+  /**
+   * Returns the arabic representation of the number.
+   * 
+   * @param n number between 0-9
+   * @return
+   */
+  public static String numToArabNum(int n) {
+    String[] arabNum = {"\u0660", "\u0661", "\u0662", "\u0663", "\u0664", "\u0665", "\u0666", //
+        "\u0667", "\u0668", "\u0669"}; //
+
+    StringBuilder as = new StringBuilder();
+    while (n > 0) {
+      as.append(arabNum[n % 10]);
+      n = n / 10;
+    }
+    return as.reverse().toString();
+  }
+
   private Document doc;
 
+  /**
+   * Creates a document reader for the Qur'an xml files.
+   * 
+   * @param language the language of the Qur'an txt
+   * @param version the version
+   * @param context the document context.
+   */
   public QuranReader(String language, String version, XComponentContext context) {
     try {
       DocumentBuilderFactory df = DocumentBuilderFactory.newInstance();
@@ -127,6 +159,12 @@ public class QuranReader {
     }
   }
 
+  /**
+   * Read all the ayat of a surah from the xml source file.
+   * 
+   * @param surano the surah
+   * @return list of ayat.
+   */
   public List<String> getAllAyatOfSuraNo(int surano) {
     List<String> list = new ArrayList<>();
     try {
@@ -141,7 +179,14 @@ public class QuranReader {
     return list;
   }
 
-  private String getAyahNoOfSuraNo(int surano, int ayano) {
+  /**
+   * Get an ayat from a surah.
+   * 
+   * @param surano the surah
+   * @param ayano the ayah
+   * @return ayah
+   */
+  public String getAyahNoOfSuraNo(int surano, int ayano) {
     String aya = null;
     try {
       XPathExpression expr =
@@ -153,6 +198,14 @@ public class QuranReader {
     return aya;
   }
 
+  /**
+   * Get a range of ayat from a surah.
+   * 
+   * @param surano the surah
+   * @param ayafrom the start ayah
+   * @param ayato the last ayah
+   * @return list of ayaht
+   */
   public List<String> getAyatFromToOfSuraNo(int surano, int ayafrom, int ayato) {
     List<String> list = new ArrayList<>();
     for (int ayano = ayafrom; ayano <= ayato; ayano++) {
@@ -161,6 +214,11 @@ public class QuranReader {
     return list;
   }
 
+  /**
+   * Get Bismillah.
+   * 
+   * @return Bismillah
+   */
   public String getBismillah() {
     String bismillah = null;
     try {
@@ -171,5 +229,4 @@ public class QuranReader {
     }
     return bismillah;
   }
-
 }

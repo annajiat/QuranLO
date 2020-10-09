@@ -23,7 +23,6 @@ import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.uno.XComponentContext;
 import nl.mossoft.loeiqt.dialog.InsertQuranTextDialog;
-import nl.mossoft.loeiqt.helper.DialogHelper;
 
 /**
  * <p>
@@ -99,7 +98,7 @@ public final class InsertQuranTextImpl extends WeakBase
       case "actionAbout":
         break;
       default:
-        DialogHelper.showErrorMessage(xcontext, null, "Unknown action: " + action);
+        System.out.println("Unknown action");
     }
   }
 }

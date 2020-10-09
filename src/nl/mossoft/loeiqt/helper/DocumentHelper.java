@@ -35,43 +35,49 @@ import com.sun.star.uno.XComponentContext;
  */
 public class DocumentHelper {
 
-  public static XComponentLoader getComponentLoader(XDesktop xDesktop) {
-    return UnoRuntime.queryInterface(com.sun.star.frame.XComponentLoader.class, xDesktop);
+  public static XComponentLoader getComponentLoader(XDesktop desktop) {
+    return UnoRuntime.queryInterface(com.sun.star.frame.XComponentLoader.class, desktop);
   }
 
-  public static XTextContent getContent(Object oGraphic) {
-    return UnoRuntime.queryInterface(com.sun.star.text.XTextContent.class, oGraphic);
+  public static XTextContent getContent(Object graphic) {
+    return UnoRuntime.queryInterface(com.sun.star.text.XTextContent.class, graphic);
   }
 
-  /** Returns the current XComponent */
-  private static XComponent getCurrentComponent(XComponentContext xContext) {
-    return getCurrentDesktop(xContext).getCurrentComponent();
+  /** 
+   * Returns the current XComponent.
+   *  */
+  private static XComponent getCurrentComponent(XComponentContext context) {
+    return getCurrentDesktop(context).getCurrentComponent();
   }
 
-  /** Returns the current XDesktop */
-  private static XDesktop getCurrentDesktop(XComponentContext xContext) {
-    XMultiComponentFactory xMCF =
-        UnoRuntime.queryInterface(XMultiComponentFactory.class, xContext.getServiceManager());
+  /** 
+   * Returns the current XDesktop.
+   *  */
+  private static XDesktop getCurrentDesktop(XComponentContext context) {
+    XMultiComponentFactory factory =
+        UnoRuntime.queryInterface(XMultiComponentFactory.class, context.getServiceManager());
     Object desktop = null;
     try {
-      desktop = xMCF.createInstanceWithContext("com.sun.star.frame.Desktop", xContext);
+      desktop = factory.createInstanceWithContext("com.sun.star.frame.Desktop", context);
     } catch (Exception e) {
       return null;
     }
     return UnoRuntime.queryInterface(com.sun.star.frame.XDesktop.class, desktop);
   }
 
-  /** Returns the current text document (if any) */
-  public static XTextDocument getCurrentDocument(XComponentContext xContext) {
-    return UnoRuntime.queryInterface(XTextDocument.class, getCurrentComponent(xContext));
+  /**
+   *  Returns the current text document (if any).
+   *  */
+  public static XTextDocument getCurrentDocument(XComponentContext context) {
+    return UnoRuntime.queryInterface(XTextDocument.class, getCurrentComponent(context));
   }
 
-  public static XTextViewCursorSupplier getCursorSupplier(XController xController) {
-    return UnoRuntime.queryInterface(XTextViewCursorSupplier.class, xController);
+  public static XTextViewCursorSupplier getCursorSupplier(XController controller) {
+    return UnoRuntime.queryInterface(XTextViewCursorSupplier.class, controller);
   }
 
-  public static XPropertySet getPropertySet(Object oGraphic) {
-    return UnoRuntime.queryInterface(com.sun.star.beans.XPropertySet.class, oGraphic);
+  public static XPropertySet getPropertySet(Object graphic) {
+    return UnoRuntime.queryInterface(com.sun.star.beans.XPropertySet.class, graphic);
   }
 
 }
