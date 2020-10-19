@@ -18,6 +18,8 @@
 package nl.mossoft.loeiqt.helper;
 
 import com.sun.star.uno.XComponentContext;
+import java.awt.Font;
+import java.awt.GraphicsEnvironment;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,6 +38,7 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import nl.mossoft.loeiqt.dialog.QuranTextDialog;
 
 /**
  * Helper Class for reading Qur'an text from xml source.
@@ -117,16 +120,38 @@ public class QuranReader {
    * @param n number between 0-9
    * @return
    */
-  public static String numToArabNum(int n) {
-    String[] arabNum = {"\u0660", "\u0661", "\u0662", "\u0663", "\u0664", "\u0665", "\u0666", //
-        "\u0667", "\u0668", "\u0669"}; //
+  // public static String numToArabNum(int n) {
+  // String[] arabNum = {"\u0660", "\u0661", "\u0662", "\u0663", "\u0664", "\u0665", "\u0666", //
+  // "\u0667", "\u0668", "\u0669"}; //
+  //
+  // StringBuilder as = new StringBuilder();
+  // while (n > 0) {
+  // as.append(arabNum[n % 10]);
+  // n = n / 10;
+  // }
+  // return as.reverse().toString();
+  // }
 
-    StringBuilder as = new StringBuilder();
-    while (n > 0) {
-      as.append(arabNum[n % 10]);
-      n = n / 10;
+   public static String numToArabNum(int n, String fontname) {
+    if (new Font(fontname, Font.PLAIN, 10).canDisplay(0x06F0)) {
+      String[] arabNum = {"\u06F0", "\u06F1", "\u06F2", "\u06F3", "\u06F4", "\u06F5", "\u06F6",
+          "\u06F7", "\u06F8", "\u06F9"};
+      StringBuilder as = new StringBuilder();
+      while (n > 0) {
+        as.append(arabNum[n % 10]);
+        n = n / 10;
+      }
+      return as.reverse().toString();
+    } else {
+     String[] arabNum = {"\u0660", "\u0661", "\u0662", "\u0663", "\u0664", "\u0665", "\u0666",
+          "\u0667", "\u0668", "\u0669"};
+      StringBuilder as = new StringBuilder();
+      while (n > 0) {
+        as.append(arabNum[n % 10]);
+        n = n / 10;
+      }
+      return as.reverse().toString();
     }
-    return as.reverse().toString();
   }
 
   private Document doc;

@@ -1,19 +1,20 @@
 /*
  * This file is part of QuranLO
- * 
+ *
  * Copyright (C) 2020 <mossie@mossoft.nl>
- * 
+ *
  * QuranLO is free software: you can redistribute it and/or modify it under the terms of the GNU
  * General Public License as published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without
  * even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License along with this program. If
  * not, see <https://www.gnu.org/licenses/>.
  */
+
 package nl.mossoft.loeiqt.dialog;
 
 import com.sun.star.awt.ActionEvent;
@@ -63,6 +64,8 @@ import nl.mossoft.loeiqt.helper.DocumentHelper;
 import nl.mossoft.loeiqt.helper.QuranReader;
 
 /**
+ * Creates the Dialog for the Quran parameters.
+ * 
  * @author abdullah
  *
  */
@@ -71,6 +74,8 @@ public class QuranTextDialog {
   private static final char A = '\u0061'; //
   private static final char ALIF = '\u0627'; // ALIF
   private static final short ALIGNMENT_RIGHT = (short) 2;
+  private static final String LPAR = "\uFD3E"; // Arabic Left parentheses
+  private static final String RPAR = "\uFD3F"; // Arabic Right parentheses
 
   private static final String AYATCHKBXID = "AyatAllCheckBox";
   private static final String AYATCHKBXLABELID = "AyatCheckBoxLabel";
@@ -136,12 +141,12 @@ public class QuranTextDialog {
   private static final String SURAHLSTBXID = "SurahListBox";
 
   private static String getItemLanguague(String item) {
-    String[] itemsSelected = item.split("[(]");
+    final String[] itemsSelected = item.split("[(]");
     return itemsSelected[0].trim();
   }
 
   private static String getItemVersion(String item) {
-    String[] itemsSelected = item.split("[(]");
+    final String[] itemsSelected = item.split("[(]");
     return itemsSelected[1].replace(")", " ").trim().replace(" ", "_");
   }
 
@@ -171,11 +176,11 @@ public class QuranTextDialog {
   private XNumericField dlgAyatFromNumericField;
   private XSpinField dlgAyaToNumericSpinfield;
   private XNumericField dlgAyatToNumericField;
-  private XComponentContext dlgComponentContext;
+  private final XComponentContext dlgComponentContext;
   private XControlContainer dlgControlContainer;
   private XDialog dlgDialog;
   private XCheckBox dlgLbLCheckBox;
-  private XMultiComponentFactory dlgMultiComponentFactory;
+  private final XMultiComponentFactory dlgMultiComponentFactory;
   private XMultiServiceFactory dlgMFactory;
   private XNameContainer dlgNameContainer;
   private XListBox dlgNonArabicFontListBox;
@@ -197,7 +202,7 @@ public class QuranTextDialog {
   private long selectedAytFrm = 1;
   private long selectedAytT = 1;
   private boolean selectedLbLInd = false;
-  private boolean selectedLnNmbrInd = true;
+  private final boolean selectedLnNmbrInd = true;
   private String selectedNnArbcFntNm;
   private double selectedNnArbcFntSz;
   private int selectedSurhNo = 1;
@@ -208,19 +213,15 @@ public class QuranTextDialog {
   private String selectedTrnsltrtnVrsn;
   private boolean selTrnsltnInd = false;
 
-  public int getSurahNo() {
-    return selectedSurhNo;
-  }
-
   private QuranTextDialog(XComponentContext context, XMultiComponentFactory factory) {
 
-    dlgComponentContext = context;
-    dlgMultiComponentFactory = factory;
+    this.dlgComponentContext = context;
+    this.dlgMultiComponentFactory = factory;
 
     try {
-      getLoDocumentDefaults();
-      dlgDialog = createDialog();
-    } catch (Exception e) {
+      this.getLoDocumentDefaults();
+      this.dlgDialog = this.createDialog();
+    } catch (final Exception e) {
       e.printStackTrace();
     }
   }
@@ -233,20 +234,20 @@ public class QuranTextDialog {
     paragraphCursor.gotoEndOfParagraph(false);
     text.insertControlCharacter(paragraphCursor, ControlCharacter.PARAGRAPH_BREAK, false);
 
-    XPropertySet paragraphCursorPropertySet = DocumentHelper.getPropertySet(paragraphCursor);
+    final XPropertySet paragraphCursorPropertySet = DocumentHelper.getPropertySet(paragraphCursor);
     paragraphCursorPropertySet.setPropertyValue("ParaAdjust", alignment);
     paragraphCursorPropertySet.setPropertyValue("WritingMode", writingMode);
     text.insertString(paragraphCursor, paragraph, false);
   }
 
   private XDialog createDialog() throws Exception {
-    Object dlgModel = dlgMultiComponentFactory
-        .createInstanceWithContext("com.sun.star.awt.UnoControlDialogModel", dlgComponentContext);
+    final Object dlgModel = this.dlgMultiComponentFactory.createInstanceWithContext(
+        "com.sun.star.awt.UnoControlDialogModel", this.dlgComponentContext);
 
-    dlgMFactory = UnoRuntime.queryInterface(XMultiServiceFactory.class, dlgModel);
-    dlgNameContainer = UnoRuntime.queryInterface(XNameContainer.class, dlgModel);
+    this.dlgMFactory = UnoRuntime.queryInterface(XMultiServiceFactory.class, dlgModel);
+    this.dlgNameContainer = UnoRuntime.queryInterface(XNameContainer.class, dlgModel);
 
-    XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, dlgModel);
+    final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, dlgModel);
     pset.setPropertyValue("PositionX", Integer.valueOf(100));
     pset.setPropertyValue("PositionY", Integer.valueOf(100));
     pset.setPropertyValue("Width", Integer.valueOf(295));
@@ -254,47 +255,56 @@ public class QuranTextDialog {
     pset.setPropertyValue("Title", "Insert Quran Text");
 
     // create the dialog control and set the model
-    Object dialog = dlgMultiComponentFactory
-        .createInstanceWithContext("com.sun.star.awt.UnoControlDialog", dlgComponentContext);
+    final Object dialog = this.dlgMultiComponentFactory
+        .createInstanceWithContext("com.sun.star.awt.UnoControlDialog", this.dlgComponentContext);
 
-    XControl xControl = UnoRuntime.queryInterface(XControl.class, dialog);
+    final XControl xControl = UnoRuntime.queryInterface(XControl.class, dialog);
 
-    dlgControlContainer = UnoRuntime.queryInterface(XControlContainer.class, dialog);
+    this.dlgControlContainer = UnoRuntime.queryInterface(XControlContainer.class, dialog);
 
-    XControlModel xControlModel = UnoRuntime.queryInterface(XControlModel.class, dlgModel);
+    final XControlModel xControlModel = UnoRuntime.queryInterface(XControlModel.class, dlgModel);
     xControl.setModel(xControlModel);
 
     final int X = 5;
     final int Y = 5;
 
     // Surah Group
-    insertGroupBox(SURAHGRPBXID, SURAHGRPBXLABEL, X, Y, 30, 140, true);
-    insertLabel(SURAHGRPBXLABELID, SURAHGRPBXLABELTXT, ALIGNMENT_RIGHT, X + 5, Y + 12 + 1, 10, 45,
-        true);
-    insertSurahListBox(SURAHLSTBXID, X + 68, Y + 12, 10, 70, true, 0);
+    this.insertGroupBox(QuranTextDialog.SURAHGRPBXID, QuranTextDialog.SURAHGRPBXLABEL, X, Y, 30,
+        140, true);
+    this.insertLabel(QuranTextDialog.SURAHGRPBXLABELID, QuranTextDialog.SURAHGRPBXLABELTXT,
+        QuranTextDialog.ALIGNMENT_RIGHT, X + 5, Y + 12 + 1, 10, 45, true);
+    this.insertSurahListBox(QuranTextDialog.SURAHLSTBXID, X + 68, Y + 12, 10, 70, true, 0);
 
     // Ayat Group
-    insertGroupBox(AYATGRPBXID, AYATGRPBXTXT, X, Y + 30, 70, 140, true);
-    insertLabel(AYATCHKBXLABELID, AYATCHKBXLABELTXT, ALIGNMENT_RIGHT, X + 5, Y + 42 + 1, 10, 45,
-        true);
-    insertLabel(AYATFROMLABELID, AYATFROMLABELTXT, ALIGNMENT_RIGHT, X + 5, Y + 62 + 1, 10, 45,
-        false);
-    insertLabel(AYATTOLABELID, AYATTOLABELTTXT, ALIGNMENT_RIGHT, X + 5, Y + 82 + 1, 10, 45, false);
-    insertAyatAllCheckBox(AYATCHKBXID, X + 54, Y + 42 - 1, 10, 10, true, 1);
-    insertAyatFromNumericField(AYATFROMNUMFLDID, X + 68, Y + 62, 10, 70, false, 3);
-    insertAyatToNumericField(AYATTONUMFLDID, X + 68, Y + 82, 10, 70, false, 3);
+    this.insertGroupBox(QuranTextDialog.AYATGRPBXID, QuranTextDialog.AYATGRPBXTXT, X, Y + 30, 70,
+        140, true);
+    this.insertLabel(QuranTextDialog.AYATCHKBXLABELID, QuranTextDialog.AYATCHKBXLABELTXT,
+        QuranTextDialog.ALIGNMENT_RIGHT, X + 5, Y + 42 + 1, 10, 45, true);
+    this.insertLabel(QuranTextDialog.AYATFROMLABELID, QuranTextDialog.AYATFROMLABELTXT,
+        QuranTextDialog.ALIGNMENT_RIGHT, X + 5, Y + 62 + 1, 10, 45, false);
+    this.insertLabel(QuranTextDialog.AYATTOLABELID, QuranTextDialog.AYATTOLABELTTXT,
+        QuranTextDialog.ALIGNMENT_RIGHT, X + 5, Y + 82 + 1, 10, 45, false);
+    this.insertAyatAllCheckBox(QuranTextDialog.AYATCHKBXID, X + 54, Y + 42 - 1, 10, 10, true, 1);
+    this.insertAyatFromNumericField(QuranTextDialog.AYATFROMNUMFLDID, X + 68, Y + 62, 10, 70, false,
+        3);
+    this.insertAyatToNumericField(QuranTextDialog.AYATTONUMFLDID, X + 68, Y + 82, 10, 70, false, 3);
 
     // Languages
-    insertGroupBox(LANGGRPBXID, LANGGRPBXLABEL, X, Y + 100, 70, 140, true);
-    insertLabel(LANGARABICLABELID, LANGARABICLABELTXT, ALIGNMENT_RIGHT, X + 5, Y + 112 + 1, 10, 45,
-        true);
-    insertArabicCheckBox(LANGARABICCHKBXID, X + 54, Y + 112 - 1, 10, 10, true, 1);
-    insertArabicListBox(LANGARABICLSTBXID, X + 68, Y + 112 - 1, 10, 70, true, 1);
+    this.insertGroupBox(QuranTextDialog.LANGGRPBXID, QuranTextDialog.LANGGRPBXLABEL, X, Y + 100, 70,
+        140, true);
+    this.insertLabel(QuranTextDialog.LANGARABICLABELID, QuranTextDialog.LANGARABICLABELTXT,
+        QuranTextDialog.ALIGNMENT_RIGHT, X + 5, Y + 112 + 1, 10, 45, true);
+    this.insertArabicCheckBox(QuranTextDialog.LANGARABICCHKBXID, X + 54, Y + 112 - 1, 10, 10, true,
+        1);
+    this.insertArabicListBox(QuranTextDialog.LANGARABICLSTBXID, X + 68, Y + 112 - 1, 10, 70, true,
+        1);
 
-    insertLabel(LANGTRNSLTNLABELID, LANGTRNSLTNLABELTXT, ALIGNMENT_RIGHT, X + 5, Y + 132 + 1, 10,
-        45, true);
-    insertTranslationCheckBox(LANGTRNSLTNCHKBXID, X + 54, Y + 132 - 1, 10, 10, true, 1);
-    insertTranslationListBox(LANGTRNSLTNLSTBXID, X + 68, Y + 132 - 1, 10, 70, false, 1);
+    this.insertLabel(QuranTextDialog.LANGTRNSLTNLABELID, QuranTextDialog.LANGTRNSLTNLABELTXT,
+        QuranTextDialog.ALIGNMENT_RIGHT, X + 5, Y + 132 + 1, 10, 45, true);
+    this.insertTranslationCheckBox(QuranTextDialog.LANGTRNSLTNCHKBXID, X + 54, Y + 132 - 1, 10, 10,
+        true, 1);
+    this.insertTranslationListBox(QuranTextDialog.LANGTRNSLTNLSTBXID, X + 68, Y + 132 - 1, 10, 70,
+        false, 1);
 
     // TODO needs to be set to true when transliteration is ready.
     // insertLabel(LANGTRNSLTRTNLABELID, LANGTRNSLTRTNLABELTXT, ALIGNMENT_RIGHT, X + 5, Y + 152 + 1,
@@ -304,14 +314,17 @@ public class QuranTextDialog {
     // insertTransliterationListBox(LANGTRNSLTRTNLSTBXID, X + 68, Y + 152 - 1, 10, 70, false, 1);
 
     // Arabic font
-    insertGroupBox(FONTARABICGRPBXID, FONTARABICGRPBXTXT, X + 145, Y, 70, 140, true);
-    insertLabel(FONTARABICLABELID, FONTARABICLABELTXT, ALIGNMENT_RIGHT, X + 150, Y + 12 + 1, 10, 45,
-        true);
-    insertArabicFontListBox(FONTARABICLSTBXID, X + 145 + 68, Y + 12, 10, 70, true, 1);
-    insertLabel(FONTARABICFONTSIZEID, FONTARABICFONTSIZELABELTXT, ALIGNMENT_RIGHT, X + 150,
+    this.insertGroupBox(QuranTextDialog.FONTARABICGRPBXID, QuranTextDialog.FONTARABICGRPBXTXT,
+        X + 145, Y, 70, 140, true);
+    this.insertLabel(QuranTextDialog.FONTARABICLABELID, QuranTextDialog.FONTARABICLABELTXT,
+        QuranTextDialog.ALIGNMENT_RIGHT, X + 150, Y + 12 + 1, 10, 45, true);
+    this.insertArabicFontListBox(QuranTextDialog.FONTARABICLSTBXID, X + 145 + 68, Y + 12, 10, 70,
+        true, 1);
+    this.insertLabel(QuranTextDialog.FONTARABICFONTSIZEID,
+        QuranTextDialog.FONTARABICFONTSIZELABELTXT, QuranTextDialog.ALIGNMENT_RIGHT, X + 150,
         Y + 32 + 1, 10, 45, true);
-    insertArabicFontSizeNumericField(FONTARABICFONTSIZENUMFLDID, X + 145 + 68, Y + 32, 10, 70, true,
-        3);
+    this.insertArabicFontSizeNumericField(QuranTextDialog.FONTARABICFONTSIZENUMFLDID, X + 145 + 68,
+        Y + 32, 10, 70, true, 3);
     // insertArabicBoldButton(FONTARABICBOLDBTTNID, FONTARABICBOLDBTTNLABEL, X + 145 + 68, Y + 49,
     // 13,
     // 13, true, 3);
@@ -319,29 +332,35 @@ public class QuranTextDialog {
     // Y + 49, 13, 13, true, 3);
 
     // Non-Arabic font
-    insertGroupBox(FONTNONARABICGRPBXID, FONTNONARABICGRPBXTXT, X + 145, Y + 70, 70, 140, false);
-    insertLabel(FONTNONARABICLABELID, FONTNONARABICLABELTXT, ALIGNMENT_RIGHT, X + 150,
-        Y + 75 + 12 + 1, 10, 45, false);
-    insertNonArabicFontListBox(FONTNONARABICLSTBXID, X + 145 + 68, Y + 70 + 12, 10, 70, false, 1);
-    insertLabel(FONTNONARABICFONTSIZEID, FONTNONARABICFONTSIZELABELTXT, ALIGNMENT_RIGHT, X + 150,
+    this.insertGroupBox(QuranTextDialog.FONTNONARABICGRPBXID, QuranTextDialog.FONTNONARABICGRPBXTXT,
+        X + 145, Y + 70, 70, 140, false);
+    this.insertLabel(QuranTextDialog.FONTNONARABICLABELID, QuranTextDialog.FONTNONARABICLABELTXT,
+        QuranTextDialog.ALIGNMENT_RIGHT, X + 150, Y + 75 + 12 + 1, 10, 45, false);
+    this.insertNonArabicFontListBox(QuranTextDialog.FONTNONARABICLSTBXID, X + 145 + 68, Y + 70 + 12,
+        10, 70, false, 1);
+    this.insertLabel(QuranTextDialog.FONTNONARABICFONTSIZEID,
+        QuranTextDialog.FONTNONARABICFONTSIZELABELTXT, QuranTextDialog.ALIGNMENT_RIGHT, X + 150,
         Y + 75 + 32 + 1, 10, 45, false);
-    insertNonArabicFontSizeNumericField(FONTNONARABICFONTSIZENUMFLDID, X + 145 + 68, Y + 70 + 32,
-        10, 70, false, 3);
+    this.insertNonArabicFontSizeNumericField(QuranTextDialog.FONTNONARABICFONTSIZENUMFLDID,
+        X + 145 + 68, Y + 70 + 32, 10, 70, false, 3);
 
-    insertGroupBox(MISCGRPBXID, MISCGRPBXLABEL, X + 145, Y + 140, 30, 140, true);
-    insertLabel(MISCLBLCHKBXLABELID, MISCLBLCHKBXLABELTXT, ALIGNMENT_RIGHT, X + 150,
-        Y + 140 + 12 + 1, 10, 45, true);
-    insertLineByLineCheckBox(MISCLBLCHKBXID, X + 145 + 68, Y + 140 + 12 - 1, 10, 10, true, 1);
+    this.insertGroupBox(QuranTextDialog.MISCGRPBXID, QuranTextDialog.MISCGRPBXLABEL, X + 145,
+        Y + 140, 30, 140, true);
+    this.insertLabel(QuranTextDialog.MISCLBLCHKBXLABELID, QuranTextDialog.MISCLBLCHKBXLABELTXT,
+        QuranTextDialog.ALIGNMENT_RIGHT, X + 150, Y + 140 + 12 + 1, 10, 45, true);
+    this.insertLineByLineCheckBox(QuranTextDialog.MISCLBLCHKBXID, X + 145 + 68, Y + 140 + 12 - 1,
+        10, 10, true, 1);
 
     // Cancel & Ok Buttons
-    insertOkButton(OKBTTNID, OKBTTNTXT, X + 245, Y + 170 + 5, 12, 40, true, 1);
+    this.insertOkButton(QuranTextDialog.OKBTTNID, QuranTextDialog.OKBTTNTXT, X + 245, Y + 170 + 5,
+        12, 40, true, 1);
 
 
     // Create a peer
-    Object toolkit = dlgMultiComponentFactory
-        .createInstanceWithContext("com.sun.star.awt.ExtToolkit", dlgComponentContext);
-    XToolkit xToolkit = UnoRuntime.queryInterface(XToolkit.class, toolkit);
-    XWindow xWindow = UnoRuntime.queryInterface(XWindow.class, xControl);
+    final Object toolkit = this.dlgMultiComponentFactory
+        .createInstanceWithContext("com.sun.star.awt.ExtToolkit", this.dlgComponentContext);
+    final XToolkit xToolkit = UnoRuntime.queryInterface(XToolkit.class, toolkit);
+    final XWindow xWindow = UnoRuntime.queryInterface(XWindow.class, xControl);
     xWindow.setVisible(false);
     xControl.createPeer(xToolkit, null);
 
@@ -349,9 +368,10 @@ public class QuranTextDialog {
   }
 
   public void enableComponent(String componentId, boolean enabled) {
-    XControl xControl =
-        UnoRuntime.queryInterface(XControl.class, dlgControlContainer.getControl(componentId));
-    XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, xControl.getModel());
+    final XControl xControl =
+        UnoRuntime.queryInterface(XControl.class, this.dlgControlContainer.getControl(componentId));
+    final XPropertySet xPropertySet =
+        UnoRuntime.queryInterface(XPropertySet.class, xControl.getModel());
     try {
       xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
     } catch (IllegalArgumentException | UnknownPropertyException | PropertyVetoException
@@ -361,21 +381,20 @@ public class QuranTextDialog {
   }
 
   void execute() {
-    dlgDialog.execute();
+    this.dlgDialog.execute();
   }
 
   private String getAyahLine(int surahno, int ayahno, String language, String version) {
-    final String LPAR = "\uFD3E"; // Arabic Left parentheses
-    final String RPAR = "\uFD3F"; // Arabic Right parentheses
 
-    QuranReader qr = new QuranReader(language, version, dlgComponentContext);
+    final QuranReader qr = new QuranReader(language, version, this.dlgComponentContext);
     String line = ((ayahno == 1) && (surahno != 1 && surahno != 9))
-        ? getBismillah(surahno, language, version) + " " + qr.getAyahNoOfSuraNo(surahno, ayahno)
+        ? this.getBismillah(surahno, language, version) + " "
+            + qr.getAyahNoOfSuraNo(surahno, ayahno)
         : qr.getAyahNoOfSuraNo(surahno, ayahno);
 
-    if (selectedLnNmbrInd) {
+    if (this.selectedLnNmbrInd) {
       if (language.equals("Arabic")) {
-        line = line + " " + RPAR + QuranReader.numToArabNum(ayahno) + LPAR + " ";
+        line = line + " " + RPAR + QuranReader.numToArabNum(ayahno, selectedArbcFntNm) + LPAR + " ";
       } else {
         line = "(" + ayahno + ") " + line;
       }
@@ -384,156 +403,238 @@ public class QuranTextDialog {
   }
 
   private String getBismillah(int surahno, String language, String version) {
-    QuranReader qr = new QuranReader(language, version, dlgComponentContext);
+    final QuranReader qr = new QuranReader(language, version, this.dlgComponentContext);
     return qr.getBismillah();
   }
 
   private double getDefaultArabicCharHeight() {
-    return defaultArabicCharHeight;
+    return this.defaultArabicCharHeight;
   }
 
   private String getDefaultArabicFontName() {
-    return defaultArabicFontName;
+    return this.defaultArabicFontName;
   }
 
   private double getDefaultNonArabicCharHeight() {
-    return defaultNonArabicCharHeight;
+    return this.defaultNonArabicCharHeight;
   }
 
   private String getDefaultNonArabicFontName() {
-    return defaultNonArabicFontName;
+    return this.defaultNonArabicFontName;
   }
 
   private void getLoDocumentDefaults() {
-    XTextDocument textDoc = DocumentHelper.getCurrentDocument(dlgComponentContext);
-    XController controller = textDoc.getCurrentController();
-    XTextViewCursorSupplier textViewCursorSupplier = DocumentHelper.getCursorSupplier(controller);
-    XTextViewCursor textViewCursor = textViewCursorSupplier.getViewCursor();
-    XText text = textViewCursor.getText();
-    XTextCursor textCursor = text.createTextCursorByRange(textViewCursor.getStart());
-    XParagraphCursor paragraphCursor =
+    final XTextDocument textDoc = DocumentHelper.getCurrentDocument(this.dlgComponentContext);
+    final XController controller = textDoc.getCurrentController();
+    final XTextViewCursorSupplier textViewCursorSupplier =
+        DocumentHelper.getCursorSupplier(controller);
+    final XTextViewCursor textViewCursor = textViewCursorSupplier.getViewCursor();
+    final XText text = textViewCursor.getText();
+    final XTextCursor textCursor = text.createTextCursorByRange(textViewCursor.getStart());
+    final XParagraphCursor paragraphCursor =
         UnoRuntime.queryInterface(XParagraphCursor.class, textCursor);
-    XPropertySet paragraphCursorPropertySet = DocumentHelper.getPropertySet(paragraphCursor);
+    final XPropertySet paragraphCursorPropertySet = DocumentHelper.getPropertySet(paragraphCursor);
 
     try {
-      defaultArabicCharHeight =
+      this.defaultArabicCharHeight =
           (float) paragraphCursorPropertySet.getPropertyValue("CharHeightComplex");
     } catch (UnknownPropertyException | WrappedTargetException e) {
-      defaultArabicCharHeight = 10;
+      this.defaultArabicCharHeight = 10;
     }
     try {
-      defaultArabicFontName =
+      this.defaultArabicFontName =
           (String) paragraphCursorPropertySet.getPropertyValue("CharFontNameComplex");
     } catch (UnknownPropertyException | WrappedTargetException e) {
-      defaultArabicFontName = "No Default set";
+      this.defaultArabicFontName = "No Default set";
     }
     try {
-      defaultNonArabicFontName =
+      this.defaultNonArabicFontName =
           (String) paragraphCursorPropertySet.getPropertyValue("CharFontName");
     } catch (UnknownPropertyException | WrappedTargetException e) {
-      defaultNonArabicFontName = "No Default set";
+      this.defaultNonArabicFontName = "No Default set";
     }
     try {
-      defaultNonArabicCharHeight =
+      this.defaultNonArabicCharHeight =
           (float) paragraphCursorPropertySet.getPropertyValue("CharHeight");
     } catch (UnknownPropertyException | WrappedTargetException e) {
-      defaultNonArabicCharHeight = 10;
+      this.defaultNonArabicCharHeight = 10;
     }
 
   }
 
-  public void insertArabicCheckBox(String componentID, int posx, int posy, int height, int width,
-      boolean enabled, int tabIndex) {
+  public int getSurahNo() {
+    return this.selectedSurhNo;
+  }
+
+  /**
+   * @param componentID
+   * @param label
+   * @param posx
+   * @param posy
+   * @param height
+   * @param width
+   * @param enabled
+   * @param tabIndex
+   */
+  public void insertArabicBoldButton(String componentID, String label, int posx, int posy,
+      int height, int width, boolean enabled, int tabIndex) {
     try {
-      Object checkBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
+      final Object ButtonModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlButtonModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, ButtonModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Label", label);
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("Toggle", Boolean.valueOf(true));
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("Align", Short.valueOf((short) 1));
+      pset.setPropertyValue("FontRelief", com.sun.star.text.FontRelief.EMBOSSED);
 
-      selectedArbcInd = shortToBoolean((short) 1);
-      dlgNameContainer.insertByName(componentID, checkBoxModel);
+      this.dlgNameContainer.insertByName(componentID, ButtonModel);
+      this.dlgArabicBoldButton = UnoRuntime.queryInterface(XButton.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgArabicCheckBox =
-          UnoRuntime.queryInterface(XCheckBox.class, dlgControlContainer.getControl(componentID));
-      dlgArabicCheckBox.addItemListener(new XItemListener() {
+
+      this.dlgArabicBoldButton.addActionListener(new XActionListener() {
+
+        @Override
+        public void actionPerformed(ActionEvent arg0) {
+
+        }
 
         @Override
         public void disposing(EventObject arg0) {}
 
-        @Override
-        public void itemStateChanged(ItemEvent arg0) {
-          selectedArbcInd = shortToBoolean(dlgArabicCheckBox.getState());
-
-          enableComponent(LANGARABICLSTBXID, selectedArbcInd);
-          enableComponent(FONTARABICGRPBXID, selectedArbcInd);
-          enableComponent(FONTARABICLABELID, selectedArbcInd);
-          enableComponent(FONTARABICLSTBXID, selectedArbcInd);
-          enableComponent(FONTARABICFONTSIZEID, selectedArbcInd);
-          enableComponent(FONTARABICFONTSIZENUMFLDID, selectedArbcInd);
-          enableComponent(OKBTTNID, selectedArbcInd || selTrnsltnInd || selectedTrnsltrtnInd);
-          enableComponent(MISCGRPBXID, selectedArbcInd || selTrnsltnInd || selectedTrnsltrtnInd);
-          enableComponent(MISCLBLCHKBXID, selectedArbcInd || selTrnsltnInd || selectedTrnsltrtnInd);
-        }
       });
-    } catch (com.sun.star.uno.Exception e) {
+
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
 
 
+  /**
+   * @param componentID
+   * @param posx
+   * @param posy
+   * @param height
+   * @param width
+   * @param enabled
+   * @param tabIndex
+   */
+  public void insertArabicCheckBox(String componentID, int posx, int posy, int height, int width,
+      boolean enabled, int tabIndex) {
+    try {
+      final Object checkBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
+
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
+
+      this.selectedArbcInd = QuranTextDialog.shortToBoolean((short) 1);
+      this.dlgNameContainer.insertByName(componentID, checkBoxModel);
+
+      this.dlgArabicCheckBox = UnoRuntime.queryInterface(XCheckBox.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgArabicCheckBox.addItemListener(new XItemListener() {
+
+        @Override
+        public void disposing(EventObject arg0) {}
+
+        @Override
+        public void itemStateChanged(ItemEvent arg0) {
+          QuranTextDialog.this.selectedArbcInd =
+              QuranTextDialog.shortToBoolean(QuranTextDialog.this.dlgArabicCheckBox.getState());
+
+          QuranTextDialog.this.enableComponent(QuranTextDialog.LANGARABICLSTBXID,
+              QuranTextDialog.this.selectedArbcInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTARABICGRPBXID,
+              QuranTextDialog.this.selectedArbcInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTARABICLABELID,
+              QuranTextDialog.this.selectedArbcInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTARABICLSTBXID,
+              QuranTextDialog.this.selectedArbcInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTARABICFONTSIZEID,
+              QuranTextDialog.this.selectedArbcInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTARABICFONTSIZENUMFLDID,
+              QuranTextDialog.this.selectedArbcInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.OKBTTNID,
+              QuranTextDialog.this.selectedArbcInd || QuranTextDialog.this.selTrnsltnInd
+                  || QuranTextDialog.this.selectedTrnsltrtnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.MISCGRPBXID,
+              QuranTextDialog.this.selectedArbcInd || QuranTextDialog.this.selTrnsltnInd
+                  || QuranTextDialog.this.selectedTrnsltrtnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.MISCLBLCHKBXID,
+              QuranTextDialog.this.selectedArbcInd || QuranTextDialog.this.selTrnsltnInd
+                  || QuranTextDialog.this.selectedTrnsltrtnInd);
+        }
+      });
+    } catch (final com.sun.star.uno.Exception e) {
+      e.printStackTrace();
+    }
+  }
+
   public void insertArabicFontListBox(String componentID, int posx, int posy, int height, int width,
       boolean enabled, int tabIndex) {
     try {
-      Object ListBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
+      final Object ListBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
 
-      selectedArbcFntNm = getDefaultArabicFontName();
+      this.selectedArbcFntNm = this.getDefaultArabicFontName();
 
-      List<String> list = new ArrayList<String>();
-      Locale locale = new Locale.Builder().setScript("ARAB").build();
+      final List<String> list = new ArrayList<String>();
+      final Locale locale = new Locale.Builder().setScript("ARAB").build();
 
-      short[] selectedItems = new short[1];
+      final short[] selectedItems = new short[1];
 
-      String[] fonts =
+      final String[] fonts =
           GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames(locale);
-      for (int i = 0; i < fonts.length; i++) {
-        if (new Font(fonts[i], Font.PLAIN, 10).canDisplay(ALIF)) {
-          list.add(fonts[i]);
-          if (fonts[i].equals(selectedArbcFntNm)) {
+      for (final String font : fonts) {
+        if (new Font(font, Font.PLAIN, 10).canDisplay(QuranTextDialog.ALIF)) {
+          list.add(font);
+          if (font.equals(this.selectedArbcFntNm)) {
             selectedItems[0] = (short) (list.size() - 1);
           }
         }
       }
-      String[] itemList = list.toArray(new String[0]);
+      final String[] itemList = list.toArray(new String[0]);
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
-      xPropertySet.setPropertyValue("StringItemList", itemList);
-      xPropertySet.setPropertyValue("SelectedItems", selectedItems);
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      pset.setPropertyValue("StringItemList", itemList);
+      pset.setPropertyValue("SelectedItems", selectedItems);
 
-      xPropertySet.setPropertyValue("MultiSelection", Boolean.FALSE);
-      xPropertySet.setPropertyValue("Dropdown", Boolean.TRUE);
+      pset.setPropertyValue("MultiSelection", Boolean.FALSE);
+      pset.setPropertyValue("Dropdown", Boolean.TRUE);
 
-      dlgNameContainer.insertByName(componentID, ListBoxModel);
+      this.dlgNameContainer.insertByName(componentID, ListBoxModel);
 
-      dlgArabicFontListBox =
-          UnoRuntime.queryInterface(XListBox.class, dlgControlContainer.getControl(componentID));
+      this.dlgArabicFontListBox = UnoRuntime.queryInterface(XListBox.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgArabicFontListBox.addItemListener(new XItemListener() {
+      this.dlgArabicFontListBox.addItemListener(new XItemListener() {
 
         @Override
         public void disposing(EventObject arg0) {}
@@ -543,7 +644,7 @@ public class QuranTextDialog {
 
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -551,40 +652,41 @@ public class QuranTextDialog {
   public void insertArabicFontSizeNumericField(String componentID, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object NumericFieldModel =
-          dlgMFactory.createInstance("com.sun.star.awt.UnoControlNumericFieldModel");
+      final Object NumericFieldModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlNumericFieldModel");
 
-      selectedArbcFntSz = getDefaultArabicCharHeight();
+      this.selectedArbcFntSz = this.getDefaultArabicCharHeight();
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, NumericFieldModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, NumericFieldModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("Spin", Boolean.TRUE);
-      xPropertySet.setPropertyValue("DecimalAccuracy", Short.valueOf((short) 1));
+      pset.setPropertyValue("Spin", Boolean.TRUE);
+      pset.setPropertyValue("DecimalAccuracy", Short.valueOf((short) 1));
 
-      dlgNameContainer.insertByName(componentID, NumericFieldModel);
+      this.dlgNameContainer.insertByName(componentID, NumericFieldModel);
 
-      dlgArabicFontsizeNumericField = UnoRuntime.queryInterface(XNumericField.class,
-          dlgControlContainer.getControl(componentID));
+      this.dlgArabicFontsizeNumericField = UnoRuntime.queryInterface(XNumericField.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgArabicFontsizeNumericField.setValue(defaultArabicCharHeight);
-      dlgArabicFontsizeNumericField.setMin(1);
+      this.dlgArabicFontsizeNumericField.setValue(this.defaultArabicCharHeight);
+      this.dlgArabicFontsizeNumericField.setMin(1);
 
-      dlgArabicFontsizeNumericSpinfield =
-          UnoRuntime.queryInterface(XSpinField.class, dlgControlContainer.getControl(componentID));
-      dlgArabicFontsizeNumericSpinfield.addSpinListener(new XSpinListener() {
+      this.dlgArabicFontsizeNumericSpinfield = UnoRuntime.queryInterface(XSpinField.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgArabicFontsizeNumericSpinfield.addSpinListener(new XSpinListener() {
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void down(SpinEvent arg0) {
-          selectedArbcFntSz = dlgArabicFontsizeNumericField.getValue();
+          QuranTextDialog.this.selectedArbcFntSz =
+              QuranTextDialog.this.dlgArabicFontsizeNumericField.getValue();
         }
 
         @Override
@@ -595,10 +697,11 @@ public class QuranTextDialog {
 
         @Override
         public void up(SpinEvent arg0) {
-          selectedArbcFntSz = dlgArabicFontsizeNumericField.getValue();
+          QuranTextDialog.this.selectedArbcFntSz =
+              QuranTextDialog.this.dlgArabicFontsizeNumericField.getValue();
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -606,57 +709,61 @@ public class QuranTextDialog {
   public void insertArabicListBox(String componentID, int posx, int posy, int height, int width,
       boolean enabled, int tabIndex) {
     try {
-      Object ListBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
+      final Object ListBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
 
-      List<String> list = new ArrayList<String>();
+      final List<String> list = new ArrayList<String>();
 
       QuranReader.getAllQuranVersions().entrySet().stream().forEach((entry) -> {
-        String currentKey = entry.getKey();
-        String[] currentValue = entry.getValue();
-        for (int i = 0; i < currentValue.length; i++) {
+        final String currentKey = entry.getKey();
+        final String[] currentValue = entry.getValue();
+        for (final String element : currentValue) {
           if (currentKey.equals("Arabic")) {
-            list.add(currentKey + " (" + currentValue[i] + ")");
+            list.add(currentKey + " (" + element + ")");
           }
         }
       });
 
-      String[] itemList = list.toArray(new String[0]);
+      final String[] itemList = list.toArray(new String[0]);
 
-      short[] selectedItems = new short[] {(short) 0};
+      final short[] selectedItems = new short[] {(short) 0};
 
-      selectedArbcLngg = getItemLanguague(itemList[0]);
-      selectedArbcVrsn = getItemVersion(itemList[0]);
+      this.selectedArbcLngg = QuranTextDialog.getItemLanguague(itemList[0]);
+      this.selectedArbcVrsn = QuranTextDialog.getItemVersion(itemList[0]);
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
-      xPropertySet.setPropertyValue("StringItemList", itemList);
-      xPropertySet.setPropertyValue("SelectedItems", selectedItems);
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      pset.setPropertyValue("StringItemList", itemList);
+      pset.setPropertyValue("SelectedItems", selectedItems);
 
-      xPropertySet.setPropertyValue("MultiSelection", Boolean.FALSE);
-      xPropertySet.setPropertyValue("Dropdown", Boolean.TRUE);
+      pset.setPropertyValue("MultiSelection", Boolean.FALSE);
+      pset.setPropertyValue("Dropdown", Boolean.TRUE);
 
-      dlgNameContainer.insertByName(componentID, ListBoxModel);
+      this.dlgNameContainer.insertByName(componentID, ListBoxModel);
 
-      dlgArabicListBox = (XListBox) UnoRuntime.queryInterface(XListBox.class,
-          dlgControlContainer.getControl(componentID));
+      this.dlgArabicListBox = UnoRuntime.queryInterface(XListBox.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgArabicListBox.addItemListener(new XItemListener() {
+      this.dlgArabicListBox.addItemListener(new XItemListener() {
         @Override
         public void disposing(EventObject arg0) {}
 
+        @Override
         public void itemStateChanged(ItemEvent arg0) {
-          selectedArbcLngg = getItemLanguague(dlgArabicListBox.getSelectedItem());
-          selectedArbcVrsn = getItemVersion(dlgArabicListBox.getSelectedItem());
+          QuranTextDialog.this.selectedArbcLngg = QuranTextDialog
+              .getItemLanguague(QuranTextDialog.this.dlgArabicListBox.getSelectedItem());
+          QuranTextDialog.this.selectedArbcVrsn = QuranTextDialog
+              .getItemVersion(QuranTextDialog.this.dlgArabicListBox.getSelectedItem());
         }
 
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -664,71 +771,30 @@ public class QuranTextDialog {
   public void insertArabicNumberButton(String componentID, String label, int posx, int posy,
       int height, int width, boolean enabled, int tabIndex) {
     try {
-      Object ButtonModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlButtonModel");
+      final Object ButtonModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlButtonModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, ButtonModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Label", label);
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, ButtonModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Label", label);
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("Toggle", Boolean.valueOf(true));
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
-      xPropertySet.setPropertyValue("Align", Short.valueOf((short) 1));
-      xPropertySet.setPropertyValue("FontRelief", com.sun.star.text.FontRelief.EMBOSSED);
+      pset.setPropertyValue("Toggle", Boolean.valueOf(true));
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("Align", Short.valueOf((short) 1));
+      pset.setPropertyValue("FontRelief", com.sun.star.text.FontRelief.EMBOSSED);
 
-      dlgNameContainer.insertByName(componentID, ButtonModel);
-      dlgArabicNumberButton = (XButton) UnoRuntime.queryInterface(XButton.class,
-          dlgControlContainer.getControl(componentID));
-
-
-      dlgArabicNumberButton.addActionListener(new XActionListener() {
-
-        @Override
-        public void actionPerformed(ActionEvent arg0) {
-
-        }
-
-        @Override
-        public void disposing(EventObject arg0) {}
-
-      });
-
-    } catch (com.sun.star.uno.Exception e) {
-      e.printStackTrace();
-    }
-  }
-
-  public void insertArabicBoldButton(String componentID, String label, int posx, int posy,
-      int height, int width, boolean enabled, int tabIndex) {
-    try {
-      Object ButtonModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlButtonModel");
-
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, ButtonModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Label", label);
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
-
-      xPropertySet.setPropertyValue("Toggle", Boolean.valueOf(true));
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
-      xPropertySet.setPropertyValue("Align", Short.valueOf((short) 1));
-      xPropertySet.setPropertyValue("FontRelief", com.sun.star.text.FontRelief.EMBOSSED);
-
-      dlgNameContainer.insertByName(componentID, ButtonModel);
-      dlgArabicBoldButton = (XButton) UnoRuntime.queryInterface(XButton.class,
-          dlgControlContainer.getControl(componentID));
+      this.dlgNameContainer.insertByName(componentID, ButtonModel);
+      this.dlgArabicNumberButton = UnoRuntime.queryInterface(XButton.class,
+          this.dlgControlContainer.getControl(componentID));
 
 
-      dlgArabicBoldButton.addActionListener(new XActionListener() {
+      this.dlgArabicNumberButton.addActionListener(new XActionListener() {
 
         @Override
         public void actionPerformed(ActionEvent arg0) {
@@ -740,7 +806,7 @@ public class QuranTextDialog {
 
       });
 
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -748,46 +814,53 @@ public class QuranTextDialog {
   public void insertAyatAllCheckBox(String componentID, int posx, int posy, int height, int width,
       boolean enabled, int tabIndex) {
     try {
-      Object checkBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
+      final Object checkBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
 
-      selectedAllRngInd = shortToBoolean((short) 1);
-      dlgNameContainer.insertByName(componentID, checkBoxModel);
+      this.selectedAllRngInd = QuranTextDialog.shortToBoolean((short) 1);
+      this.dlgNameContainer.insertByName(componentID, checkBoxModel);
 
-      dlgAyatAllCheckBox =
-          UnoRuntime.queryInterface(XCheckBox.class, dlgControlContainer.getControl(componentID));
-      dlgAyatAllCheckBox.addItemListener(new XItemListener() {
+      this.dlgAyatAllCheckBox = UnoRuntime.queryInterface(XCheckBox.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgAyatAllCheckBox.addItemListener(new XItemListener() {
 
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void itemStateChanged(ItemEvent arg0) {
-          selectedAllRngInd = shortToBoolean(dlgAyatAllCheckBox.getState());
+          QuranTextDialog.this.selectedAllRngInd =
+              QuranTextDialog.shortToBoolean(QuranTextDialog.this.dlgAyatAllCheckBox.getState());
 
-          if (!selectedAllRngInd) {
-            dlgAyatToNumericField.setValue(selectedAytT);
-            dlgAyatFromNumericField.setValue(selectedAytFrm);
+          if (!QuranTextDialog.this.selectedAllRngInd) {
+            QuranTextDialog.this.dlgAyatToNumericField.setValue(QuranTextDialog.this.selectedAytT);
+            QuranTextDialog.this.dlgAyatFromNumericField
+                .setValue(QuranTextDialog.this.selectedAytFrm);
           }
 
-          enableComponent(AYATFROMLABELID, !selectedAllRngInd);
-          enableComponent(AYATFROMNUMFLDID, !selectedAllRngInd);
-          enableComponent(AYATTOLABELID, !selectedAllRngInd);
-          enableComponent(AYATTONUMFLDID, !selectedAllRngInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.AYATFROMLABELID,
+              !QuranTextDialog.this.selectedAllRngInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.AYATFROMNUMFLDID,
+              !QuranTextDialog.this.selectedAllRngInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.AYATTOLABELID,
+              !QuranTextDialog.this.selectedAllRngInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.AYATTONUMFLDID,
+              !QuranTextDialog.this.selectedAllRngInd);
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -795,38 +868,39 @@ public class QuranTextDialog {
   public void insertAyatFromNumericField(String componentID, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object NumericFieldModel =
-          dlgMFactory.createInstance("com.sun.star.awt.UnoControlNumericFieldModel");
+      final Object NumericFieldModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlNumericFieldModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, NumericFieldModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, NumericFieldModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("Spin", Boolean.TRUE);
-      xPropertySet.setPropertyValue("DecimalAccuracy", Short.valueOf((short) 0));
+      pset.setPropertyValue("Spin", Boolean.TRUE);
+      pset.setPropertyValue("DecimalAccuracy", Short.valueOf((short) 0));
 
-      dlgNameContainer.insertByName(componentID, NumericFieldModel);
+      this.dlgNameContainer.insertByName(componentID, NumericFieldModel);
 
-      dlgAyatFromNumericField = UnoRuntime.queryInterface(XNumericField.class,
-          dlgControlContainer.getControl(componentID));
+      this.dlgAyatFromNumericField = UnoRuntime.queryInterface(XNumericField.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgAyatFromNumericField.setValue(selectedAytFrm);
-      dlgAyatFromNumericField.setMin(selectedAytFrm);
+      this.dlgAyatFromNumericField.setValue(this.selectedAytFrm);
+      this.dlgAyatFromNumericField.setMin(this.selectedAytFrm);
 
-      dlgAyaFromNumericSpinfield =
-          UnoRuntime.queryInterface(XSpinField.class, dlgControlContainer.getControl(componentID));
-      dlgAyaFromNumericSpinfield.addSpinListener(new XSpinListener() {
+      this.dlgAyaFromNumericSpinfield = UnoRuntime.queryInterface(XSpinField.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgAyaFromNumericSpinfield.addSpinListener(new XSpinListener() {
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void down(SpinEvent arg0) {
-          selectedAytFrm = Math.round(dlgAyatFromNumericField.getValue());
+          QuranTextDialog.this.selectedAytFrm =
+              Math.round(QuranTextDialog.this.dlgAyatFromNumericField.getValue());
         }
 
         @Override
@@ -837,10 +911,11 @@ public class QuranTextDialog {
 
         @Override
         public void up(SpinEvent arg0) {
-          selectedAytFrm = Math.round(dlgAyatFromNumericField.getValue());
+          QuranTextDialog.this.selectedAytFrm =
+              Math.round(QuranTextDialog.this.dlgAyatFromNumericField.getValue());
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -848,39 +923,40 @@ public class QuranTextDialog {
   public void insertAyatToNumericField(String componentID, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object NumericFieldModel =
-          dlgMFactory.createInstance("com.sun.star.awt.UnoControlNumericFieldModel");
+      final Object NumericFieldModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlNumericFieldModel");
 
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, NumericFieldModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, NumericFieldModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("Spin", Boolean.TRUE);
-      xPropertySet.setPropertyValue("DecimalAccuracy", Short.valueOf((short) 0));
+      pset.setPropertyValue("Spin", Boolean.TRUE);
+      pset.setPropertyValue("DecimalAccuracy", Short.valueOf((short) 0));
 
-      dlgNameContainer.insertByName(componentID, NumericFieldModel);
+      this.dlgNameContainer.insertByName(componentID, NumericFieldModel);
 
-      dlgAyatToNumericField = UnoRuntime.queryInterface(XNumericField.class,
-          dlgControlContainer.getControl(componentID));
+      this.dlgAyatToNumericField = UnoRuntime.queryInterface(XNumericField.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgAyatToNumericField.setValue(selectedAytT);
-      dlgAyatToNumericField.setMax(selectedAytT);
+      this.dlgAyatToNumericField.setValue(this.selectedAytT);
+      this.dlgAyatToNumericField.setMax(this.selectedAytT);
 
-      dlgAyaToNumericSpinfield =
-          UnoRuntime.queryInterface(XSpinField.class, dlgControlContainer.getControl(componentID));
-      dlgAyaToNumericSpinfield.addSpinListener(new XSpinListener() {
+      this.dlgAyaToNumericSpinfield = UnoRuntime.queryInterface(XSpinField.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgAyaToNumericSpinfield.addSpinListener(new XSpinListener() {
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void down(SpinEvent arg0) {
-          selectedAytT = Math.round(dlgAyatToNumericField.getValue());
+          QuranTextDialog.this.selectedAytT =
+              Math.round(QuranTextDialog.this.dlgAyatToNumericField.getValue());
         }
 
         @Override
@@ -891,140 +967,187 @@ public class QuranTextDialog {
 
         @Override
         public void up(SpinEvent arg0) {
-          selectedAytT = Math.round(dlgAyatToNumericField.getValue());
-          System.out.printf("Selected Ayat To: %s\n", selectedAytT);
+          QuranTextDialog.this.selectedAytT =
+              Math.round(QuranTextDialog.this.dlgAyatToNumericField.getValue());
+          System.out.printf("Selected Ayat To: %s\n", QuranTextDialog.this.selectedAytT);
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
 
+  /**
+   * Insert a group box in the dialog.
+   * 
+   * @param componentID identification of the group box.
+   * @param label label of the group box.
+   * @param posx x position.
+   * @param posy y position.
+   * @param height height of group box.
+   * @param width width of group box.
+   * @param enabled true if group box is enabled.
+   */
   public void insertGroupBox(String componentID, String label, int posx, int posy, int height,
       int width, boolean enabled) {
     try {
-      Object groupBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlGroupBoxModel");
+      final Object groupBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlGroupBoxModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, groupBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("Label", label);
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, groupBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("Label", label);
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      dlgNameContainer.insertByName(componentID, groupBoxModel);
-    } catch (com.sun.star.uno.Exception e) {
+      this.dlgNameContainer.insertByName(componentID, groupBoxModel);
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
 
+  /**
+   * Insert a label in the dialog.
+   * 
+   * @param componentID identification of the group box.
+   * @param label label of the group box.
+   * @param posx x position.
+   * @param posy y position.
+   * @param height height of group box.
+   * @param width width of group box.
+   * @param enabled true if group box is enabled.
+   */
   public void insertLabel(String componentID, String label, short alignment, int posx, int posy,
       int height, int width, boolean enabled) {
     try {
-      Object fixedTextModel =
-          dlgMFactory.createInstance("com.sun.star.awt.UnoControlFixedTextModel");
+      final Object fixedTextModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlFixedTextModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, fixedTextModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("Label", label);
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, fixedTextModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("Label", label);
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("Align", alignment);
+      pset.setPropertyValue("Align", alignment);
 
-      dlgNameContainer.insertByName(componentID, fixedTextModel);
-    } catch (com.sun.star.uno.Exception e) {
+      this.dlgNameContainer.insertByName(componentID, fixedTextModel);
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
 
+  /**
+   * Insert check box for indicating the format in the dialog.
+   * 
+   * @param componentID identification of the check box.
+   * @param posx x position.
+   * @param posy y position.
+   * @param height height of check box.
+   * @param width width of check box.
+   * @param enabled true if the Line by line format is selected.
+   */
   public void insertLineByLineCheckBox(String componentID, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object checkBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
+      final Object checkBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
 
-      selectedLbLInd = shortToBoolean((short) 1);
-      dlgNameContainer.insertByName(componentID, checkBoxModel);
+      this.selectedLbLInd = QuranTextDialog.shortToBoolean((short) 1);
+      this.dlgNameContainer.insertByName(componentID, checkBoxModel);
 
-      dlgLbLCheckBox =
-          UnoRuntime.queryInterface(XCheckBox.class, dlgControlContainer.getControl(componentID));
-      dlgLbLCheckBox.addItemListener(new XItemListener() {
+      this.dlgLbLCheckBox = UnoRuntime.queryInterface(XCheckBox.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgLbLCheckBox.addItemListener(new XItemListener() {
 
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void itemStateChanged(ItemEvent arg0) {
-          selectedLbLInd = shortToBoolean(dlgLbLCheckBox.getState());
+          QuranTextDialog.this.selectedLbLInd =
+              QuranTextDialog.shortToBoolean(QuranTextDialog.this.dlgLbLCheckBox.getState());
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
 
+  /**
+   * Insert list box for selecting the non-arabic font in the dialog.
+   * 
+   * @param componentID identification of the list box.
+   * @param posx x position.
+   * @param posy y position.
+   * @param height height of list box.
+   * @param width width of list box.
+   * @param enabled true if the list box is enabled.
+   */
   public void insertNonArabicFontListBox(String componentID, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object ListBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
+      final Object ListBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
 
-      selectedNnArbcFntNm = getDefaultNonArabicFontName();
+      this.selectedNnArbcFntNm = this.getDefaultNonArabicFontName();
 
-      List<String> list = new ArrayList<String>();
-      Locale locale = new Locale.Builder().setScript("LATN").build();
+      final List<String> list = new ArrayList<String>();
+      final Locale locale = new Locale.Builder().setScript("LATN").build();
 
-      short[] selectedItems = new short[1];
+      final short[] selectedItems = new short[1];
 
-      String[] fonts =
+      final String[] fonts =
           GraphicsEnvironment.getLocalGraphicsEnvironment().getAvailableFontFamilyNames(locale);
-      for (int i = 0; i < fonts.length; i++) {
-        if (new Font(fonts[i], Font.PLAIN, 10).canDisplay(A)) {
-          list.add(fonts[i]);
-          if (fonts[i].equals(selectedNnArbcFntNm)) {
+      for (final String font : fonts) {
+        if (new Font(font, Font.PLAIN, 10).canDisplay(QuranTextDialog.A)) {
+          list.add(font);
+          if (font.equals(this.selectedNnArbcFntNm)) {
             selectedItems[0] = (short) (list.size() - 1);
           }
         }
       }
 
-      String[] itemList = list.toArray(new String[0]);
+      final String[] itemList = list.toArray(new String[0]);
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
-      xPropertySet.setPropertyValue("StringItemList", itemList);
-      xPropertySet.setPropertyValue("SelectedItems", selectedItems);
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      pset.setPropertyValue("StringItemList", itemList);
+      pset.setPropertyValue("SelectedItems", selectedItems);
 
-      xPropertySet.setPropertyValue("MultiSelection", Boolean.FALSE);
-      xPropertySet.setPropertyValue("Dropdown", Boolean.TRUE);
+      pset.setPropertyValue("MultiSelection", Boolean.FALSE);
+      pset.setPropertyValue("Dropdown", Boolean.TRUE);
 
-      dlgNameContainer.insertByName(componentID, ListBoxModel);
+      this.dlgNameContainer.insertByName(componentID, ListBoxModel);
 
-      dlgNonArabicFontListBox = (XListBox) UnoRuntime.queryInterface(XListBox.class,
-          dlgControlContainer.getControl(componentID));
+      this.dlgNonArabicFontListBox = UnoRuntime.queryInterface(XListBox.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgNonArabicFontListBox.addItemListener(new XItemListener() {
+      this.dlgNonArabicFontListBox.addItemListener(new XItemListener() {
 
         @Override
         public void disposing(EventObject arg0) {}
@@ -1034,7 +1157,7 @@ public class QuranTextDialog {
 
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -1042,40 +1165,41 @@ public class QuranTextDialog {
   public void insertNonArabicFontSizeNumericField(String componentID, int posx, int posy,
       int height, int width, boolean enabled, int tabIndex) {
     try {
-      Object NumericFieldModel =
-          dlgMFactory.createInstance("com.sun.star.awt.UnoControlNumericFieldModel");
+      final Object NumericFieldModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlNumericFieldModel");
 
-      selectedNnArbcFntSz = getDefaultNonArabicCharHeight();
+      this.selectedNnArbcFntSz = this.getDefaultNonArabicCharHeight();
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, NumericFieldModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, NumericFieldModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("Spin", Boolean.TRUE);
-      xPropertySet.setPropertyValue("DecimalAccuracy", Short.valueOf((short) 1));
+      pset.setPropertyValue("Spin", Boolean.TRUE);
+      pset.setPropertyValue("DecimalAccuracy", Short.valueOf((short) 1));
 
-      dlgNameContainer.insertByName(componentID, NumericFieldModel);
+      this.dlgNameContainer.insertByName(componentID, NumericFieldModel);
 
-      dlgNonArabicFontsizeNumericField = UnoRuntime.queryInterface(XNumericField.class,
-          dlgControlContainer.getControl(componentID));
+      this.dlgNonArabicFontsizeNumericField = UnoRuntime.queryInterface(XNumericField.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgNonArabicFontsizeNumericField.setValue(defaultNonArabicCharHeight);
-      dlgNonArabicFontsizeNumericField.setMin(1);
+      this.dlgNonArabicFontsizeNumericField.setValue(this.defaultNonArabicCharHeight);
+      this.dlgNonArabicFontsizeNumericField.setMin(1);
 
-      dlgNonArabicFontsizeNumericSpinfield =
-          UnoRuntime.queryInterface(XSpinField.class, dlgControlContainer.getControl(componentID));
-      dlgNonArabicFontsizeNumericSpinfield.addSpinListener(new XSpinListener() {
+      this.dlgNonArabicFontsizeNumericSpinfield = UnoRuntime.queryInterface(XSpinField.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgNonArabicFontsizeNumericSpinfield.addSpinListener(new XSpinListener() {
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void down(SpinEvent arg0) {
-          selectedNnArbcFntSz = dlgNonArabicFontsizeNumericField.getValue();
+          QuranTextDialog.this.selectedNnArbcFntSz =
+              QuranTextDialog.this.dlgNonArabicFontsizeNumericField.getValue();
         }
 
         @Override
@@ -1086,10 +1210,11 @@ public class QuranTextDialog {
 
         @Override
         public void up(SpinEvent arg0) {
-          selectedNnArbcFntSz = dlgNonArabicFontsizeNumericField.getValue();
+          QuranTextDialog.this.selectedNnArbcFntSz =
+              QuranTextDialog.this.dlgNonArabicFontsizeNumericField.getValue();
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -1097,29 +1222,30 @@ public class QuranTextDialog {
   public void insertOkButton(String componentID, String label, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object ButtonModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlButtonModel");
+      final Object ButtonModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlButtonModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, ButtonModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Label", label);
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, ButtonModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Label", label);
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      dlgNameContainer.insertByName(componentID, ButtonModel);
-      dlgOkButton = (XButton) UnoRuntime.queryInterface(XButton.class,
-          dlgControlContainer.getControl(componentID));
+      this.dlgNameContainer.insertByName(componentID, ButtonModel);
+      this.dlgOkButton = UnoRuntime.queryInterface(XButton.class,
+          this.dlgControlContainer.getControl(componentID));
 
 
-      dlgOkButton.addActionListener(new XActionListener() {
+      this.dlgOkButton.addActionListener(new XActionListener() {
 
         @Override
         public void actionPerformed(ActionEvent arg0) {
-          writeSurah(selectedSurhNo);
-          dlgDialog.endExecute();
+          QuranTextDialog.this.writeSurah(QuranTextDialog.this.selectedSurhNo);
+          QuranTextDialog.this.dlgDialog.endExecute();
         }
 
         @Override
@@ -1127,7 +1253,7 @@ public class QuranTextDialog {
 
       });
 
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -1135,55 +1261,59 @@ public class QuranTextDialog {
   public void insertSurahListBox(String componentID, int posx, int posy, int height, int width,
       boolean enabled, int tabIndex) {
     try {
-      Object ListBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
+      final Object ListBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
 
-      String[] itemList = new String[114];
+      final String[] itemList = new String[114];
       for (int i = 0; i < 114; i++) {
         itemList[i] = QuranReader.getSurahName(i) + " (" + (i + 1) + ")";
       }
-      short[] selectedItems = new short[] {(short) 0};
+      final short[] selectedItems = new short[] {(short) 0};
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("MultiSelection", Boolean.FALSE);
-      xPropertySet.setPropertyValue("Dropdown", Boolean.TRUE);
-      xPropertySet.setPropertyValue("StringItemList", itemList);
-      xPropertySet.setPropertyValue("SelectedItems", selectedItems);
+      pset.setPropertyValue("MultiSelection", Boolean.FALSE);
+      pset.setPropertyValue("Dropdown", Boolean.TRUE);
+      pset.setPropertyValue("StringItemList", itemList);
+      pset.setPropertyValue("SelectedItems", selectedItems);
 
-      selectedSurhNo = 1;
-      selectedAytFrm = 1;
-      selectedAytT = QuranReader.getSurahSize(selectedSurhNo - 1);
+      this.selectedSurhNo = 1;
+      this.selectedAytFrm = 1;
+      this.selectedAytT = QuranReader.getSurahSize(this.selectedSurhNo - 1);
 
-      dlgNameContainer.insertByName(componentID, ListBoxModel);
+      this.dlgNameContainer.insertByName(componentID, ListBoxModel);
 
-      dlgSurahListBox =
-          UnoRuntime.queryInterface(XListBox.class, dlgControlContainer.getControl(componentID));
-      dlgSurahListBox.addItemListener(new XItemListener() {
+      this.dlgSurahListBox = UnoRuntime.queryInterface(XListBox.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgSurahListBox.addItemListener(new XItemListener() {
 
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void itemStateChanged(ItemEvent arg0) {
-          selectedSurhNo = (short) (dlgSurahListBox.getSelectedItemPos() + 1);
+          QuranTextDialog.this.selectedSurhNo =
+              (short) (QuranTextDialog.this.dlgSurahListBox.getSelectedItemPos() + 1);
 
-          selectedAytFrm = 1;
-          dlgAyatFromNumericField.setValue(selectedAytFrm);
-          dlgAyatFromNumericField.setMin(selectedAytFrm);
+          QuranTextDialog.this.selectedAytFrm = 1;
+          QuranTextDialog.this.dlgAyatFromNumericField
+              .setValue(QuranTextDialog.this.selectedAytFrm);
+          QuranTextDialog.this.dlgAyatFromNumericField.setMin(QuranTextDialog.this.selectedAytFrm);
 
-          selectedAytT = QuranReader.getSurahSize(selectedSurhNo - 1);
-          dlgAyatToNumericField.setValue(selectedAytT);
-          dlgAyatToNumericField.setMax(selectedAytT);
+          QuranTextDialog.this.selectedAytT =
+              QuranReader.getSurahSize(QuranTextDialog.this.selectedSurhNo - 1);
+          QuranTextDialog.this.dlgAyatToNumericField.setValue(QuranTextDialog.this.selectedAytT);
+          QuranTextDialog.this.dlgAyatToNumericField.setMax(QuranTextDialog.this.selectedAytT);
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -1191,26 +1321,27 @@ public class QuranTextDialog {
   public void insertTranslationCheckBox(String componentID, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object checkBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
+      final Object checkBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 0));
-      selTrnsltnInd = shortToBoolean(Short.valueOf((short) 0));
+      pset.setPropertyValue("State", Short.valueOf((short) 0));
+      this.selTrnsltnInd = QuranTextDialog.shortToBoolean(Short.valueOf((short) 0));
 
-      dlgNameContainer.insertByName(componentID, checkBoxModel);
+      this.dlgNameContainer.insertByName(componentID, checkBoxModel);
 
-      dlgTrnsltnCheckBox =
-          UnoRuntime.queryInterface(XCheckBox.class, dlgControlContainer.getControl(componentID));
-      dlgTrnsltnCheckBox.addItemListener(new XItemListener() {
+      this.dlgTrnsltnCheckBox = UnoRuntime.queryInterface(XCheckBox.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgTrnsltnCheckBox.addItemListener(new XItemListener() {
 
         @Override
         public void disposing(EventObject arg0) {}
@@ -1218,20 +1349,33 @@ public class QuranTextDialog {
         @Override
         public void itemStateChanged(ItemEvent arg0) {
 
-          selTrnsltnInd = shortToBoolean(dlgTrnsltnCheckBox.getState());
+          QuranTextDialog.this.selTrnsltnInd =
+              QuranTextDialog.shortToBoolean(QuranTextDialog.this.dlgTrnsltnCheckBox.getState());
 
-          enableComponent(LANGTRNSLTNLSTBXID, selTrnsltnInd);
-          enableComponent(FONTNONARABICGRPBXID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(FONTNONARABICLABELID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(FONTNONARABICLSTBXID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(FONTNONARABICFONTSIZEID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(FONTNONARABICFONTSIZENUMFLDID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(OKBTTNID, selectedArbcInd || selTrnsltnInd || selectedTrnsltrtnInd);
-          enableComponent(MISCGRPBXID, selectedArbcInd || selTrnsltnInd || selectedTrnsltrtnInd);
-          enableComponent(MISCLBLCHKBXID, selectedArbcInd || selTrnsltnInd || selectedTrnsltrtnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.LANGTRNSLTNLSTBXID,
+              QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICGRPBXID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICLABELID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICLSTBXID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICFONTSIZEID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICFONTSIZENUMFLDID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.OKBTTNID,
+              QuranTextDialog.this.selectedArbcInd || QuranTextDialog.this.selTrnsltnInd
+                  || QuranTextDialog.this.selectedTrnsltrtnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.MISCGRPBXID,
+              QuranTextDialog.this.selectedArbcInd || QuranTextDialog.this.selTrnsltnInd
+                  || QuranTextDialog.this.selectedTrnsltrtnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.MISCLBLCHKBXID,
+              QuranTextDialog.this.selectedArbcInd || QuranTextDialog.this.selTrnsltnInd
+                  || QuranTextDialog.this.selectedTrnsltrtnInd);
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -1239,58 +1383,61 @@ public class QuranTextDialog {
   public void insertTranslationListBox(String componentID, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object ListBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
+      final Object ListBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
 
-      List<String> list = new ArrayList<String>();
+      final List<String> list = new ArrayList<String>();
 
       QuranReader.getAllQuranVersions().entrySet().stream().forEach((entry) -> {
-        String currentKey = entry.getKey();
-        String[] currentValue = entry.getValue();
-        for (int i = 0; i < currentValue.length; i++) {
+        final String currentKey = entry.getKey();
+        final String[] currentValue = entry.getValue();
+        for (final String element : currentValue) {
           if (!currentKey.equals("Arabic")) {
-            list.add(currentKey + " (" + currentValue[i] + ")");
+            list.add(currentKey + " (" + element + ")");
           }
         }
       });
 
-      String[] itemList = list.toArray(new String[0]);
+      final String[] itemList = list.toArray(new String[0]);
 
-      short[] selectedItems = new short[] {(short) 0};
+      final short[] selectedItems = new short[] {(short) 0};
 
-      selectedTrnsltnLngg = getItemLanguague(itemList[0]);
-      selectedTrnsltnVrsn = getItemVersion(itemList[0]);
+      this.selectedTrnsltnLngg = QuranTextDialog.getItemLanguague(itemList[0]);
+      this.selectedTrnsltnVrsn = QuranTextDialog.getItemVersion(itemList[0]);
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
-      xPropertySet.setPropertyValue("StringItemList", itemList);
-      xPropertySet.setPropertyValue("SelectedItems", selectedItems);
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      pset.setPropertyValue("StringItemList", itemList);
+      pset.setPropertyValue("SelectedItems", selectedItems);
 
-      xPropertySet.setPropertyValue("MultiSelection", Boolean.FALSE);
-      xPropertySet.setPropertyValue("Dropdown", Boolean.TRUE);
+      pset.setPropertyValue("MultiSelection", Boolean.FALSE);
+      pset.setPropertyValue("Dropdown", Boolean.TRUE);
 
-      dlgNameContainer.insertByName(componentID, ListBoxModel);
+      this.dlgNameContainer.insertByName(componentID, ListBoxModel);
 
-      dlgTrnsltnListBox =
-          UnoRuntime.queryInterface(XListBox.class, dlgControlContainer.getControl(componentID));
+      this.dlgTrnsltnListBox = UnoRuntime.queryInterface(XListBox.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgTrnsltnListBox.addItemListener(new XItemListener() {
+      this.dlgTrnsltnListBox.addItemListener(new XItemListener() {
 
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void itemStateChanged(ItemEvent arg0) {
-          selectedTrnsltnLngg = getItemLanguague(dlgTrnsltnListBox.getSelectedItem());
-          selectedTrnsltnVrsn = getItemVersion(dlgTrnsltnListBox.getSelectedItem());
+          QuranTextDialog.this.selectedTrnsltnLngg = QuranTextDialog
+              .getItemLanguague(QuranTextDialog.this.dlgTrnsltnListBox.getSelectedItem());
+          QuranTextDialog.this.selectedTrnsltnVrsn = QuranTextDialog
+              .getItemVersion(QuranTextDialog.this.dlgTrnsltnListBox.getSelectedItem());
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -1298,46 +1445,60 @@ public class QuranTextDialog {
   public void insertTransliterationCheckBox(String componentID, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object checkBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
+      final Object checkBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlCheckBoxModel");
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 1));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, checkBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("State", Short.valueOf((short) 1));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
 
-      xPropertySet.setPropertyValue("State", Short.valueOf((short) 0));
+      pset.setPropertyValue("State", Short.valueOf((short) 0));
 
-      selectedAllRngInd = shortToBoolean((short) 1);
-      dlgNameContainer.insertByName(componentID, checkBoxModel);
+      this.selectedAllRngInd = QuranTextDialog.shortToBoolean((short) 1);
+      this.dlgNameContainer.insertByName(componentID, checkBoxModel);
 
-      dlgTrnsltrtnCheckBox =
-          UnoRuntime.queryInterface(XCheckBox.class, dlgControlContainer.getControl(componentID));
-      dlgTrnsltrtnCheckBox.addItemListener(new XItemListener() {
+      this.dlgTrnsltrtnCheckBox = UnoRuntime.queryInterface(XCheckBox.class,
+          this.dlgControlContainer.getControl(componentID));
+      this.dlgTrnsltrtnCheckBox.addItemListener(new XItemListener() {
 
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void itemStateChanged(ItemEvent arg0) {
-          selectedTrnsltrtnInd = shortToBoolean(dlgTrnsltrtnCheckBox.getState());
+          QuranTextDialog.this.selectedTrnsltrtnInd =
+              QuranTextDialog.shortToBoolean(QuranTextDialog.this.dlgTrnsltrtnCheckBox.getState());
 
-          enableComponent(LANGTRNSLTRTNLSTBXID, selectedTrnsltrtnInd);
-          enableComponent(FONTNONARABICGRPBXID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(FONTNONARABICLABELID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(FONTNONARABICLSTBXID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(FONTNONARABICFONTSIZEID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(FONTNONARABICFONTSIZENUMFLDID, selectedTrnsltrtnInd || selTrnsltnInd);
-          enableComponent(OKBTTNID, selectedArbcInd || selTrnsltnInd || selectedTrnsltrtnInd);
-          enableComponent(MISCGRPBXID, selectedArbcInd || selTrnsltnInd || selectedTrnsltrtnInd);
-          enableComponent(MISCLBLCHKBXID, selectedArbcInd || selTrnsltnInd || selectedTrnsltrtnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.LANGTRNSLTRTNLSTBXID,
+              QuranTextDialog.this.selectedTrnsltrtnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICGRPBXID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICLABELID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICLSTBXID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICFONTSIZEID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.FONTNONARABICFONTSIZENUMFLDID,
+              QuranTextDialog.this.selectedTrnsltrtnInd || QuranTextDialog.this.selTrnsltnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.OKBTTNID,
+              QuranTextDialog.this.selectedArbcInd || QuranTextDialog.this.selTrnsltnInd
+                  || QuranTextDialog.this.selectedTrnsltrtnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.MISCGRPBXID,
+              QuranTextDialog.this.selectedArbcInd || QuranTextDialog.this.selTrnsltnInd
+                  || QuranTextDialog.this.selectedTrnsltrtnInd);
+          QuranTextDialog.this.enableComponent(QuranTextDialog.MISCLBLCHKBXID,
+              QuranTextDialog.this.selectedArbcInd || QuranTextDialog.this.selTrnsltnInd
+                  || QuranTextDialog.this.selectedTrnsltrtnInd);
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
@@ -1345,130 +1506,140 @@ public class QuranTextDialog {
   public void insertTransliterationListBox(String componentID, int posx, int posy, int height,
       int width, boolean enabled, int tabIndex) {
     try {
-      Object ListBoxModel = dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
+      final Object ListBoxModel =
+          this.dlgMFactory.createInstance("com.sun.star.awt.UnoControlListBoxModel");
 
-      List<String> list = new ArrayList<String>();
+      final List<String> list = new ArrayList<String>();
 
       QuranReader.getAllQuranVersions().entrySet().stream().forEach((entry) -> {
-        String currentKey = entry.getKey();
-        String[] currentValue = entry.getValue();
-        for (int i = 0; i < currentValue.length; i++) {
+        final String currentKey = entry.getKey();
+        final String[] currentValue = entry.getValue();
+        for (final String element : currentValue) {
           if (currentKey.equals("Transliteration")) {
-            list.add(currentKey + " (" + currentValue[i] + ")");
+            list.add(currentKey + " (" + element + ")");
           }
         }
       });
 
-      String[] itemList = list.toArray(new String[0]);
+      final String[] itemList = list.toArray(new String[0]);
 
-      short[] selectedItems = new short[] {(short) 0};
+      final short[] selectedItems = new short[] {(short) 0};
 
-      selectedTrnsltrtnLngg = getItemLanguague(itemList[0]);
-      selectedTrnsltrtnVrsn = getItemVersion(itemList[0]);
+      this.selectedTrnsltrtnLngg = QuranTextDialog.getItemLanguague(itemList[0]);
+      this.selectedTrnsltrtnVrsn = QuranTextDialog.getItemVersion(itemList[0]);
 
-      XPropertySet xPropertySet = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
-      xPropertySet.setPropertyValue("PositionX", Integer.valueOf(posx));
-      xPropertySet.setPropertyValue("PositionY", Integer.valueOf(posy));
-      xPropertySet.setPropertyValue("Width", Integer.valueOf(width));
-      xPropertySet.setPropertyValue("Height", Integer.valueOf(height));
-      xPropertySet.setPropertyValue("Name", componentID);
-      xPropertySet.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
-      xPropertySet.setPropertyValue("Enabled", Boolean.valueOf(enabled));
-      xPropertySet.setPropertyValue("StringItemList", itemList);
-      xPropertySet.setPropertyValue("SelectedItems", selectedItems);
+      final XPropertySet pset = UnoRuntime.queryInterface(XPropertySet.class, ListBoxModel);
+      pset.setPropertyValue("PositionX", Integer.valueOf(posx));
+      pset.setPropertyValue("PositionY", Integer.valueOf(posy));
+      pset.setPropertyValue("Width", Integer.valueOf(width));
+      pset.setPropertyValue("Height", Integer.valueOf(height));
+      pset.setPropertyValue("Name", componentID);
+      pset.setPropertyValue("TabIndex", Short.valueOf((short) tabIndex));
+      pset.setPropertyValue("Enabled", Boolean.valueOf(enabled));
+      pset.setPropertyValue("StringItemList", itemList);
+      pset.setPropertyValue("SelectedItems", selectedItems);
 
-      xPropertySet.setPropertyValue("MultiSelection", Boolean.FALSE);
-      xPropertySet.setPropertyValue("Dropdown", Boolean.TRUE);
+      pset.setPropertyValue("MultiSelection", Boolean.FALSE);
+      pset.setPropertyValue("Dropdown", Boolean.TRUE);
 
-      dlgNameContainer.insertByName(componentID, ListBoxModel);
+      this.dlgNameContainer.insertByName(componentID, ListBoxModel);
 
-      dlgTrnsltrtnListBox =
-          UnoRuntime.queryInterface(XListBox.class, dlgControlContainer.getControl(componentID));
+      this.dlgTrnsltrtnListBox = UnoRuntime.queryInterface(XListBox.class,
+          this.dlgControlContainer.getControl(componentID));
 
-      dlgTrnsltrtnListBox.addItemListener(new XItemListener() {
+      this.dlgTrnsltrtnListBox.addItemListener(new XItemListener() {
 
         @Override
         public void disposing(EventObject arg0) {}
 
         @Override
         public void itemStateChanged(ItemEvent arg0) {
-          selectedTrnsltrtnLngg = getItemLanguague(dlgTrnsltrtnListBox.getSelectedItem());
-          selectedTrnsltrtnVrsn = getItemVersion(dlgTrnsltrtnListBox.getSelectedItem());
+          QuranTextDialog.this.selectedTrnsltrtnLngg = QuranTextDialog
+              .getItemLanguague(QuranTextDialog.this.dlgTrnsltrtnListBox.getSelectedItem());
+          QuranTextDialog.this.selectedTrnsltrtnVrsn = QuranTextDialog
+              .getItemVersion(QuranTextDialog.this.dlgTrnsltrtnListBox.getSelectedItem());
         }
       });
-    } catch (com.sun.star.uno.Exception e) {
+    } catch (final com.sun.star.uno.Exception e) {
       e.printStackTrace();
     }
   }
 
   public void writeSurah(int surahNumber) {
-    XTextDocument textDoc = DocumentHelper.getCurrentDocument(dlgComponentContext);
-    XController controller = textDoc.getCurrentController();
-    XTextViewCursorSupplier textViewCursorSupplier = DocumentHelper.getCursorSupplier(controller);
-    XTextViewCursor textViewCursor = textViewCursorSupplier.getViewCursor();
-    XText text = textViewCursor.getText();
-    XTextCursor textCursor = text.createTextCursorByRange(textViewCursor.getStart());
-    XParagraphCursor paragraphCursor =
+    final XTextDocument textDoc = DocumentHelper.getCurrentDocument(this.dlgComponentContext);
+    final XController controller = textDoc.getCurrentController();
+    final XTextViewCursorSupplier textViewCursorSupplier =
+        DocumentHelper.getCursorSupplier(controller);
+    final XTextViewCursor textViewCursor = textViewCursorSupplier.getViewCursor();
+    final XText text = textViewCursor.getText();
+    final XTextCursor textCursor = text.createTextCursorByRange(textViewCursor.getStart());
+    final XParagraphCursor paragraphCursor =
         UnoRuntime.queryInterface(XParagraphCursor.class, textCursor);
-    XPropertySet paragraphCursorPropertySet = DocumentHelper.getPropertySet(paragraphCursor);
+    final XPropertySet paragraphCursorPropertySet = DocumentHelper.getPropertySet(paragraphCursor);
 
     try {
-      paragraphCursorPropertySet.setPropertyValue("CharFontName", selectedNnArbcFntNm);
-      paragraphCursorPropertySet.setPropertyValue("CharFontNameComplex", selectedArbcFntNm);
-      paragraphCursorPropertySet.setPropertyValue("CharHeight", selectedNnArbcFntSz);
-      paragraphCursorPropertySet.setPropertyValue("CharHeightComplex", selectedArbcFntSz);
+      paragraphCursorPropertySet.setPropertyValue("CharFontName", this.selectedNnArbcFntNm);
+      paragraphCursorPropertySet.setPropertyValue("CharFontNameComplex", this.selectedArbcFntNm);
+      paragraphCursorPropertySet.setPropertyValue("CharHeight", this.selectedNnArbcFntSz);
+      paragraphCursorPropertySet.setPropertyValue("CharHeightComplex", this.selectedArbcFntSz);
 
-      int from = (selectedAllRngInd) ? 1 : (int) selectedAytFrm;
-      int to = (selectedAllRngInd) ? QuranReader.getSurahSize(surahNumber - 1) + 1
-          : (int) selectedAytT + 1;
+      final int from = (this.selectedAllRngInd) ? 1 : (int) this.selectedAytFrm;
+      final int to = (this.selectedAllRngInd) ? QuranReader.getSurahSize(surahNumber - 1) + 1
+          : (int) this.selectedAytT + 1;
 
-      if (selectedLbLInd) {
-        String linea = " ", lineb = "", linec = "";
+      if (this.selectedLbLInd) {
+        String linea = " ";
+        String lineb = "";
+        String linec = "";;
         for (int l = from; l < to; l++) {
-          if (selectedArbcInd) {
-            linea = linea + getAyahLine(surahNumber, l, selectedArbcLngg, selectedArbcVrsn) + "\n";
-          }
-          if (selTrnsltnInd) {
-            lineb = lineb + getAyahLine(surahNumber, l, selectedTrnsltnLngg, selectedTrnsltnVrsn)
+          if (this.selectedArbcInd) {
+            linea = linea
+                + this.getAyahLine(surahNumber, l, this.selectedArbcLngg, this.selectedArbcVrsn)
                 + "\n";
           }
-          if (selectedTrnsltrtnInd) {
-            linec = linec
-                + getAyahLine(surahNumber, l, selectedTrnsltrtnLngg, selectedTrnsltrtnVrsn) + "\n";
+          if (this.selTrnsltnInd) {
+            lineb = lineb + this.getAyahLine(surahNumber, l, this.selectedTrnsltnLngg,
+                this.selectedTrnsltnVrsn) + "\n";
+          }
+          if (this.selectedTrnsltrtnInd) {
+            linec = linec + this.getAyahLine(surahNumber, l, this.selectedTrnsltrtnLngg,
+                this.selectedTrnsltrtnVrsn) + "\n";
           }
         }
-        addParagraph(text, paragraphCursor, linea + "\n", com.sun.star.style.ParagraphAdjust.RIGHT,
-            com.sun.star.text.WritingMode2.RL_TB);
-        addParagraph(text, paragraphCursor, lineb + "\n", com.sun.star.style.ParagraphAdjust.LEFT,
-            com.sun.star.text.WritingMode2.LR_TB);
-        addParagraph(text, paragraphCursor, linec + "\n", com.sun.star.style.ParagraphAdjust.LEFT,
-            com.sun.star.text.WritingMode2.LR_TB);
+        this.addParagraph(text, paragraphCursor, linea + "\n",
+            com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
+        this.addParagraph(text, paragraphCursor, lineb + "\n",
+            com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
+        this.addParagraph(text, paragraphCursor, linec + "\n",
+            com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
       } else {
-        if (selectedArbcInd) {
+        if (this.selectedArbcInd) {
           String linea = "";
           for (int l = from; l < to; l++) {
-            linea = linea + getAyahLine(surahNumber, l, selectedArbcLngg, selectedArbcVrsn) + " ";
+            linea = linea
+                + this.getAyahLine(surahNumber, l, this.selectedArbcLngg, this.selectedArbcVrsn)
+                + " ";
           }
-          addParagraph(text, paragraphCursor, linea + "\n",
+          this.addParagraph(text, paragraphCursor, linea + "\n",
               com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
         }
-        if (selTrnsltnInd) {
+        if (this.selTrnsltnInd) {
           String lineb = "";
           for (int l = from; l < to; l++) {
-            lineb =
-                lineb + getAyahLine(surahNumber, l, selectedTrnsltnLngg, selectedTrnsltnVrsn) + " ";
+            lineb = lineb + this.getAyahLine(surahNumber, l, this.selectedTrnsltnLngg,
+                this.selectedTrnsltnVrsn) + " ";
           }
-          addParagraph(text, paragraphCursor, lineb + "\n", com.sun.star.style.ParagraphAdjust.LEFT,
-              com.sun.star.text.WritingMode2.LR_TB);
+          this.addParagraph(text, paragraphCursor, lineb + "\n",
+              com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
         }
-        if (selectedTrnsltrtnInd) {
+        if (this.selectedTrnsltrtnInd) {
           String linec = "";
           for (int l = from; l < to; l++) {
-            linec = linec
-                + getAyahLine(surahNumber, l, selectedTrnsltrtnLngg, selectedTrnsltrtnVrsn) + " ";
+            linec = linec + this.getAyahLine(surahNumber, l, this.selectedTrnsltrtnLngg,
+                this.selectedTrnsltrtnVrsn) + " ";
           }
-          addParagraph(text, paragraphCursor, linec + "\n", com.sun.star.style.ParagraphAdjust.LEFT,
-              com.sun.star.text.WritingMode2.LR_TB);
+          this.addParagraph(text, paragraphCursor, linec + "\n",
+              com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
         }
       }
     } catch (com.sun.star.lang.IllegalArgumentException | UnknownPropertyException
