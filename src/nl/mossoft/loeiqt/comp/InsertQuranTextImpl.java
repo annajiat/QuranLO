@@ -23,11 +23,10 @@ import com.sun.star.lib.uno.helper.WeakBase;
 import com.sun.star.registry.XRegistryKey;
 import com.sun.star.uno.XComponentContext;
 import nl.mossoft.loeiqt.dialog.InsertQuranTextDialog;
+import nl.mossoft.loeiqt.helper.DialogHelper;
 
 /**
- * <p>
  * Implementation of the core functionality of the extension.
- * </p>
  * 
  * @author abdullah (mossie@mossoft.nl)
  */
@@ -38,14 +37,12 @@ public final class InsertQuranTextImpl extends WeakBase
   private static final String[] SERVICENAMES = {"nl.mossoft.loeiqt.InsertQuranText"};
 
   /**
-   * <p>
    * Get a Component Factory.
-   * </p>
    * 
    * @param implementationName name of implementation
    * @return Component Factory
    */
-  public static XSingleComponentFactory __getComponentFactory(String implementationName) {
+  public static XSingleComponentFactory __getComponentFactory(final String implementationName) {
     XSingleComponentFactory factory = null;
 
     if (implementationName.equals(IMPLEMENTATIONNAME)) {
@@ -58,13 +55,12 @@ public final class InsertQuranTextImpl extends WeakBase
     return Factory.writeRegistryServiceInfo(IMPLEMENTATIONNAME, SERVICENAMES, registryKey);
   }
 
-  private final XComponentContext xcontext;
+  private final XComponentContext context;
 
   public InsertQuranTextImpl(XComponentContext context) {
-    xcontext = context;
+    this.context = context;
   }
 
-  // com.sun.star.lang.XServiceInfo:
   @Override
   public String getImplementationName() {
     return IMPLEMENTATIONNAME;
@@ -87,18 +83,15 @@ public final class InsertQuranTextImpl extends WeakBase
     return false;
   }
 
-  // com.sun.star.task.XJobExecutor:
   @Override
   public void trigger(String action) {
     switch (action) {
       case "actionIqt":
-        InsertQuranTextDialog actionIqtDialog = new InsertQuranTextDialog(xcontext);
-        actionIqtDialog.show();
-        break;
-      case "actionAbout":
+        InsertQuranTextDialog insertQuranTextDialog = new InsertQuranTextDialog(context);
+        insertQuranTextDialog.show();
         break;
       default:
-        System.out.println("Unknown action");
+        DialogHelper.showErrorMessage(this.context, null, "Unknown action: " + action);
     }
   }
 }

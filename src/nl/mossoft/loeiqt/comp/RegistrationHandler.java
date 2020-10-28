@@ -97,12 +97,12 @@ public class RegistrationHandler {
    * modified.</strong>
    * </p>
    * 
-   * @param pRegistryKey the root registry key where to write the informations.
+   * @param registryKey the root registry key where to write the informations.
    * 
    * @return <code>true</code> if the informations have been successfully written to the registry
    *         key, <code>false</code> otherwise.
    */
-  public static boolean __writeRegistryServiceInfo(XRegistryKey xRegistryKey) {
+  public static boolean __writeRegistryServiceInfo(XRegistryKey registryKey) {
 
     Class<?>[] classes = findServicesImplementationClasses();
 
@@ -113,7 +113,7 @@ public class RegistrationHandler {
       try {
         Class<?>[] writeTypes = new Class[] {XRegistryKey.class};
         Method getFactoryMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
-        Object o = getFactoryMethod.invoke(null, xRegistryKey);
+        Object o = getFactoryMethod.invoke(null, registryKey);
         success = success && ((Boolean) o).booleanValue();
       } catch (Exception e) {
         success = false;
@@ -125,6 +125,8 @@ public class RegistrationHandler {
   }
 
   /**
+   * Find implementation classes for UNO services.
+   * 
    * @return all the UNO implementation classes.
    */
   private static Class<?>[] findServicesImplementationClasses() {
