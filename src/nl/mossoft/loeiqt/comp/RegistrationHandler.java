@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU Lesser General Public License along with this library;
  * if not, write to the Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
  * 02111-1307 USA
- * 
+ *
  * The Initial Developer of the Original Code is: Sun Microsystems, Inc..
  *
  * Copyright: 2002 by Sun Microsystems, Inc.
@@ -41,11 +41,11 @@ import java.util.ArrayList;
 
 /**
  * Component main registration class.
- * 
+ *
  * <p>
  * <strong>This class should not be modified.</strong>
  * </p>
- * 
+ *
  * @author Cedric Bosdonnat aka. cedricbosdo
  *
  */
@@ -53,33 +53,31 @@ public class RegistrationHandler {
 
   /**
    * Get a component factory for the implementations handled by this class.
-   * 
+   *
    * <p>
    * This method calls all the methods of the same name from the classes listed in the
    * <code>RegistrationHandler.classes</code> file. <strong>This method should not be
    * modified.</strong>
    * </p>
-   * 
+   *
    * @param implementationName the name of the implementation to create.
    * @return the factory which can create the implementation.
    */
-  public static XSingleComponentFactory __getComponentFactory(String implementationName) {
+  public static XSingleComponentFactory __getComponentFactory(final String implementationName) {
     XSingleComponentFactory factory = null;
 
-    Class<?>[] classes = findServicesImplementationClasses();
+    final Class<?>[] classes = findServicesImplementationClasses();
 
     int i = 0;
     while (i < classes.length && factory == null) {
-      Class<?> clazz = classes[i];
+      final Class<?> clazz = classes[i];
       if (implementationName.equals(clazz.getCanonicalName())) {
         try {
-          Class<?>[] getTypes = new Class[] {String.class};
-          Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
-          Object o = getFactoryMethod.invoke(null, implementationName);
+          final Class<?>[] getTypes = new Class[] {String.class};
+          final Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
+          final Object o = getFactoryMethod.invoke(null, implementationName);
           factory = (XSingleComponentFactory) o;
-        } catch (Exception e) {
-          // Nothing to do: skip
-          System.err.println("Error happened");
+        } catch (final Exception e) {
           e.printStackTrace();
         }
       }
@@ -90,32 +88,32 @@ public class RegistrationHandler {
 
   /**
    * Writes the services implementation informations to the UNO registry.
-   * 
+   *
    * <p>
    * This method calls all the methods of the same name from the classes listed in the
    * <code>RegistrationHandler.classes</code> file. <strong>This method should not be
    * modified.</strong>
    * </p>
-   * 
+   *
    * @param registryKey the root registry key where to write the informations.
-   * 
+   *
    * @return <code>true</code> if the informations have been successfully written to the registry
    *         key, <code>false</code> otherwise.
    */
-  public static boolean __writeRegistryServiceInfo(XRegistryKey registryKey) {
+  public static boolean __writeRegistryServiceInfo(final XRegistryKey registryKey) {
 
-    Class<?>[] classes = findServicesImplementationClasses();
+    final Class<?>[] classes = findServicesImplementationClasses();
 
     boolean success = true;
     int i = 0;
     while (i < classes.length && success) {
-      Class<?> clazz = classes[i];
+      final Class<?> clazz = classes[i];
       try {
-        Class<?>[] writeTypes = new Class[] {XRegistryKey.class};
-        Method getFactoryMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
-        Object o = getFactoryMethod.invoke(null, registryKey);
+        final Class<?>[] writeTypes = new Class[] {XRegistryKey.class};
+        final Method getFactoryMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
+        final Object o = getFactoryMethod.invoke(null, registryKey);
         success = success && ((Boolean) o).booleanValue();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         success = false;
         e.printStackTrace();
       }
@@ -126,15 +124,16 @@ public class RegistrationHandler {
 
   /**
    * Find implementation classes for UNO services.
-   * 
+   *
    * @return all the UNO implementation classes.
    */
   private static Class<?>[] findServicesImplementationClasses() {
 
-    ArrayList<Class<?>> classes = new ArrayList<Class<?>>();
+    final ArrayList<Class<?>> classes = new ArrayList<>();
 
-    InputStream in = RegistrationHandler.class.getResourceAsStream("RegistrationHandler.classes");
-    LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
+    final InputStream in =
+        RegistrationHandler.class.getResourceAsStream("RegistrationHandler.classes");
+    final LineNumberReader reader = new LineNumberReader(new InputStreamReader(in));
 
     try {
       String line = reader.readLine();
@@ -142,35 +141,42 @@ public class RegistrationHandler {
         if (!line.equals("")) {
           line = line.trim();
           try {
-            Class<?> clazz = Class.forName(line);
+            final Class<?> clazz = Class.forName(line);
 
-            Class<?>[] writeTypes = new Class[] {XRegistryKey.class};
-            Class<?>[] getTypes = new Class[] {String.class};
+            final Class<?>[] writeTypes = new Class[] {XRegistryKey.class};
+            final Class<?>[] getTypes = new Class[] {String.class};
 
-            Method writeRegMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
-            Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
+            final Method writeRegMethod = clazz.getMethod("__writeRegistryServiceInfo", writeTypes);
+            final Method getFactoryMethod = clazz.getMethod("__getComponentFactory", getTypes);
 
             if (writeRegMethod != null && getFactoryMethod != null) {
               classes.add(clazz);
             }
 
-          } catch (Exception e) {
+          } catch (final Exception e) {
             e.printStackTrace();
           }
         }
         line = reader.readLine();
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       e.printStackTrace();
     } finally {
       try {
         reader.close();
         in.close();
-      } catch (Exception e) {
+      } catch (final Exception e) {
         e.printStackTrace();
-      } 
+      }
     }
 
     return classes.toArray(new Class[classes.size()]);
+  }
+
+  /**
+   * the Constructor.
+   */
+  private RegistrationHandler() {
+
   }
 }

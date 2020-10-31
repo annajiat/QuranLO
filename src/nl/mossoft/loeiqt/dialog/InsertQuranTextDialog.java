@@ -40,7 +40,11 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import nl.mossoft.loeiqt.helper.DialogHelper;
 import nl.mossoft.loeiqt.helper.DocumentHelper;
 import nl.mossoft.loeiqt.helper.QuranReader;
@@ -109,14 +113,68 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     return (short) (b ? 1 : 0);
   }
 
+  /**
+   * get the codepoint for zero in the font.
+   *
+   * @param fontname the fontname
+   * @return base
+   */
+  private static int getFontNumberBase(final String fontname) {
+    final Map<String, Integer> fontmap = new LinkedHashMap<>();
+
+    fontmap.put("Al Qalam Quran Majeed", 0x06F0);
+    fontmap.put("Al Qalam Quran Majeed 1", 0x06F0);
+    fontmap.put("Al Qalam Quran Majeed 2", 0x06F0);
+    fontmap.put("KFGQPC Uthmanic Script HAFS", 0x0030);
+    fontmap.put("Scheherazade", 0x0660);
+    fontmap.put("Scheherazade quran", 0x0660);
+
+    if (fontmap.containsKey(fontname)) {
+      return fontmap.get(fontname);
+    } else {
+      return (new Font(fontname, Font.PLAIN, 10).canDisplay(0x06F0)) ? 0x06F0 : 0x0660;
+
+    }
+  }
+
+  /**
+   * Transforms the listbox item description of a languguage listbox into a language.
+   *
+   * @param item the listbox item
+   * @return the language
+   */
   private static String getItemLanguague(final String item) {
     final String[] itemsSelected = item.split("[(]");
     return itemsSelected[0].trim();
   }
 
+  /**
+   * Transforms the listbox item description of a languguage listbox into a text version.
+   *
+   * @param item the listbox item
+   * @return the version
+   */
   private static String getItemVersion(final String item) {
     final String[] itemsSelected = item.split("[(]");
     return itemsSelected[1].replace(")", " ").trim().replace(" ", "_");
+  }
+
+  /**
+   * Returns the arabic representation of a number.
+   *
+   * @param n number between 0-9
+   * @param fontname fontname
+   * @return arabic number string
+   */
+  public static String numToArabNum(int n, final String fontname) {
+    final int base = getFontNumberBase(fontname);
+
+    final StringBuilder as = new StringBuilder();
+    while (n > 0) {
+      as.append(Character.toChars(base + (n % 10)));
+      n = n / 10;
+    }
+    return as.reverse().toString();
   }
 
   /**
@@ -129,10 +187,11 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     return s != 0;
   }
 
-  private double defaultArabicCharHeight;
+  private final Map<String, Method> actionsMap = new LinkedHashMap<>();
   private String defaultArabicFontName;
-  private double defaultNonArabicCharHeight;
+  private double defaultArabicFontSize;
   private String defaultNonArabicFontName;
+  private double defaultNonArabicFontSize;
   private final XComponentContext dlgContext;
   private final XDialog dlgDialog;
   private boolean selectedAllAyatInd = true;
@@ -162,79 +221,54 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
           ON_SURAH_SELECTED, ON_TRANSLATION_CHECKBUTTON_PRESSED, ON_TRANSLATION_VERSION_SELECTED,
           ON_TRANSLITERATION_CHECKBUTTON_PRESSED, ON_TRANSLITERATION_VERSION_SELECTED};
 
+
+  /**
+   * Constructor.
+   *
+   * @param context the dialig context
+   */
   public InsertQuranTextDialog(final XComponentContext context) {
     dlgDialog = DialogHelper.createDialog("InsertQuranTextDialog.xdl", context, this);
     dlgContext = context;
   }
 
+  /**
+   * Overrides the callHandlerMethod to handle the actions.
+   */
   @Override
   public boolean callHandlerMethod(final XDialog dialog, final Object eventObject,
       final String methodName) throws WrappedTargetException {
-
-    if (methodName.equals(ON_ALL_AYAT_CHECKBUTTON_PRESSED)) {
-      handleAllAyatCheckButtonPressed();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_ARABIC_CHECKBUTTON_PRESSED)) {
-      handleArabicCheckButtonPressed();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_ARABIC_VERSION_SELECTED)) {
-      handleArabicVersionSelected();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_ARABIC_FONT_SELECTED)) {
-      handleArabicFontSelected();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_ARABIC_FONT_SIZE_TEXT_CHANGED)) {
-      handleArabicFontTextChanged();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_AYAT_FROM_TEXT_CHANGED)) {
-      handleAyatFromTextChanged();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_AYAT_TO_TEXT_CHANGED)) {
-      handleAyatToTextChanged();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_LINE_BY_LINE_CHECKBUTTON_PRESSED)) {
-      handleLineByLineCheckButtonPressed();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_NON_ARABIC_FONT_SELECTED)) {
-      handleNonArabicFontSelected();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_NON_ARABIC_FONT_SIZE_TEXT_CHANGED)) {
-      handleNonArabicFontTextChanged();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_OK_BUTTON_PRESSED)) {
-      handleOkButtonPressed();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_SURAH_SELECTED)) {
-      handleSurahSelected();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_TRANSLATION_CHECKBUTTON_PRESSED)) {
-      handleTranslationCheckButtonPressed();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_TRANSLATION_VERSION_SELECTED)) {
-      handleTranslationVersionSelected();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_TRANSLITERATION_CHECKBUTTON_PRESSED)) {
-      handleTransliterationCheckButtonPressedSelected();
-      return true; // Event was handled
-    } else if (methodName.equals(ON_TRANSLITERATION_VERSION_SELECTED)) {
-      handleTransliterationVersionSelected();
-      return true; // Event was handled
+    try {
+      if (actionsMap.containsKey(methodName)) {
+        actionsMap.get(methodName).invoke(this);
+        return true;
+      }
+    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+      e.printStackTrace();
     }
-    return false; // Event was not handled
+    return false;
   }
 
+  /**
+   * Gets a ayat for the selected Surah.
+   *
+   * @param surahno the surah number
+   * @param ayahno the ayat number
+   * @param language the language to be used
+   * @param version the text version to be used
+   * @return the ayat
+   *
+   */
   private String getAyahLine(final int surahno, final int ayahno, final String language,
       final String version) {
 
     final QuranReader qr = new QuranReader(language, version, dlgContext);
-    String line = ((ayahno == 1) && (surahno != 1 && surahno != 9))
-        ? getBismillah(language, version) + " " + qr.getAyahNoOfSuraNo(surahno, ayahno)
-        : qr.getAyahNoOfSuraNo(surahno, ayahno);
 
+    String line = qr.getAyahNoOfSuraNo(surahno, ayahno);
     if (selectedLineNumberInd) {
       if (language.equals(ARABIC)) {
-        line = line + " " + RIGHT_PARENTHESIS
-            + QuranReader.numToArabNum(ayahno, selectedArabicFontName) + LEFT_PARENTHESIS + " ";
+        line = line + " " + RIGHT_PARENTHESIS + numToArabNum(ayahno, selectedArabicFontName)
+            + LEFT_PARENTHESIS + " ";
       } else {
         line = "(" + ayahno + ") " + line;
       }
@@ -242,27 +276,57 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     return line;
   }
 
+  /**
+   * Gets the text Bismillah in the language from a text version.
+   *
+   * @param language the language to be used
+   * @param version the text version to be used
+   * @return the text
+   */
   private String getBismillah(final String language, final String version) {
     final QuranReader qr = new QuranReader(language, version, dlgContext);
     return qr.getBismillah();
   }
 
-  private double getDefaultArabicCharHeight() {
-    return defaultArabicCharHeight;
-  }
-
+  /**
+   * Get the default font for Arabic.
+   *
+   * @return the fontsize
+   */
   private String getDefaultArabicFontName() {
     return defaultArabicFontName;
   }
 
-  private double getDefaultNonArabicCharHeight() {
-    return defaultNonArabicCharHeight;
+  /**
+   * Get the default fontsize for Arabic.
+   *
+   * @return the fontsize
+   */
+  private double getDefaultArabicFontsize() {
+    return defaultArabicFontSize;
   }
 
+  /**
+   * Get the default font for non Arabic.
+   *
+   * @return the fontsize
+   */
   private String getDefaultNonArabicFontName() {
     return defaultNonArabicFontName;
   }
 
+  /**
+   * Get the default fontsize for the Non-Arabic.
+   *
+   * @return the fontsize
+   */
+  private double getDefaultNonArabicFontSize() {
+    return defaultNonArabicFontSize;
+  }
+
+  /**
+   * Get default settings from LibreOffice.
+   */
   private void getLoDocumentDefaults() {
     final XTextDocument textDoc = DocumentHelper.getCurrentDocument(dlgContext);
     final XController controller = textDoc.getCurrentController();
@@ -276,10 +340,10 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     final XPropertySet paragraphCursorPropertySet = DocumentHelper.getPropertySet(paragraphCursor);
 
     try {
-      defaultArabicCharHeight =
+      defaultArabicFontSize =
           (float) paragraphCursorPropertySet.getPropertyValue("CharHeightComplex");
     } catch (UnknownPropertyException | WrappedTargetException e) {
-      defaultArabicCharHeight = 10;
+      defaultArabicFontSize = 10;
     }
     try {
       defaultArabicFontName =
@@ -294,13 +358,15 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
       defaultNonArabicFontName = "No Default set";
     }
     try {
-      defaultNonArabicCharHeight =
-          (float) paragraphCursorPropertySet.getPropertyValue("CharHeight");
+      defaultNonArabicFontSize = (float) paragraphCursorPropertySet.getPropertyValue("CharHeight");
     } catch (UnknownPropertyException | WrappedTargetException e) {
-      defaultNonArabicCharHeight = 10;
+      defaultNonArabicFontSize = 10;
     }
   }
 
+  /**
+   * Override to provide the supported actions.
+   */
   @Override
   public String[] getSupportedMethodNames() {
     return supportedActions;
@@ -309,6 +375,7 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
   /**
    * Handler for the All Ayat CheckButtun.
    */
+  @SuppressWarnings("unused")
   private void handleAllAyatCheckButtonPressed() {
     final XCheckBox dlgAllAyatCheckbox =
         DialogHelper.getCheckBox(dlgDialog, DIALOG_ALL_AYAT_CHECKBOX_ID);
@@ -331,6 +398,10 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     }
   }
 
+  /**
+   * Handler for Arabic CheckButton.
+   */
+  @SuppressWarnings("unused")
   private void handleArabicCheckButtonPressed() {
     final XCheckBox dlgArabicCheckbox =
         DialogHelper.getCheckBox(dlgDialog, DIALOG_ARABIC_CHECKBOX_ID);
@@ -354,6 +425,10 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
         selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
   }
 
+  /**
+   * Handler for Arabic Font ListBox.
+   */
+  @SuppressWarnings("unused")
   private void handleArabicFontSelected() {
     final XListBox dlgArabicFontListBox =
         DialogHelper.getListBox(dlgDialog, DIALOG_ARABIC_FONT_LISTBOX_ID);
@@ -361,13 +436,21 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     selectedArabicFontName = dlgArabicFontListBox.getSelectedItem();
   }
 
-  private void handleArabicFontTextChanged() {
+  /**
+   * Handler for Arabic Fontsize NumericField.
+   */
+  @SuppressWarnings("unused")
+  private void handleArabicFontSizeTextChanged() {
     final XNumericField dlgArabicFrontSize =
         DialogHelper.getNumericField(dlgDialog, DIALOG_ARABIC_FONTSIZE_NUMERICFIELD_ID);
 
     selectedArabicFontSize = dlgArabicFrontSize.getValue();
   }
 
+  /**
+   * Handler for Arabic Version ListBox.
+   */
+  @SuppressWarnings("unused")
   private void handleArabicVersionSelected() {
     final XListBox dlgArabicListBox = DialogHelper.getListBox(dlgDialog, DIALOG_ARABIC_LISTBOX_ID);
 
@@ -377,6 +460,10 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
         InsertQuranTextDialog.getItemVersion(dlgArabicListBox.getSelectedItem());
   }
 
+  /**
+   * Handler for Ayat From NumericField.
+   */
+  @SuppressWarnings("unused")
   private void handleAyatFromTextChanged() {
     final XNumericField dlgAyatFromNumericField =
         DialogHelper.getNumericField(dlgDialog, DIALOG_AYAT_FROM_NUMERIC_FIELD_ID);
@@ -388,6 +475,10 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     selectedAyatFrom = (int) Math.round(dlgAyatFromNumericField.getValue());
   }
 
+  /**
+   * Handler for Ayat To NumericField.
+   */
+  @SuppressWarnings("unused")
   private void handleAyatToTextChanged() {
     final XNumericField dlgAyatToNumericField =
         DialogHelper.getNumericField(dlgDialog, DIALOG_AYAT_TO_NUMERIC_FIELD_ID);
@@ -402,6 +493,10 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     selectedAyatTo = (int) Math.round(dlgAyatToNumericField.getValue());
   }
 
+  /**
+   * Handler for Line By Line CheckButton.
+   */
+  @SuppressWarnings("unused")
   private void handleLineByLineCheckButtonPressed() {
     final XCheckBox dlgLineByLineCheckbox =
         DialogHelper.getCheckBox(dlgDialog, DIALOG_LINE_BY_LINE_CHECKBOX_ID);
@@ -409,6 +504,11 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     selectedLineByLineInd = short2Boolean(dlgLineByLineCheckbox.getState());
   }
 
+
+  /**
+   * Handler for Non Arabic Font ListBox.
+   */
+  @SuppressWarnings("unused")
   private void handleNonArabicFontSelected() {
     final XListBox dlgNonArabicFontListBox =
         DialogHelper.getListBox(dlgDialog, DIALOG_NON_ARABIC_FONT_LISTBOX_ID);
@@ -416,7 +516,11 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     selectedNonArabicFontName = dlgNonArabicFontListBox.getSelectedItem();
   }
 
-  private void handleNonArabicFontTextChanged() {
+  /**
+   * Handler for Non Arabic Fontsize NumericField.
+   */
+  @SuppressWarnings("unused")
+  private void handleNonArabicFontSizeTextChanged() {
     final XNumericField dlgNonArabicFrontSize =
         DialogHelper.getNumericField(dlgDialog, DIALOG_NON_ARABIC_FONTSIZE_NUMERICFIELD_ID);
 
@@ -426,11 +530,16 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
   /**
    * Handler for Ok Button.
    */
+  @SuppressWarnings("unused")
   private void handleOkButtonPressed() {
     writeSurah(selectedSurahNo);
     dlgDialog.endExecute();
   }
 
+  /**
+   * Handler for Surah listbox.
+   */
+  @SuppressWarnings("unused")
   private void handleSurahSelected() {
     final XListBox dlgSurahListBox = DialogHelper.getListBox(dlgDialog, DIALOG_SURAH_LISTBOX_ID);
 
@@ -447,6 +556,10 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     selectedAyatTo = (int) Math.round(dlgAyatToNumericField.getValue());
   }
 
+  /**
+   * Handler for Translation CheckButton.
+   */
+  @SuppressWarnings("unused")
   private void handleTranslationCheckButtonPressed() {
     final XCheckBox dlgTranslationCheckbox =
         DialogHelper.getCheckBox(dlgDialog, DIALOG_TRANSLATION_CHECKBOX_ID);
@@ -474,6 +587,10 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
         selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
   }
 
+  /**
+   * Handler for Translation Version ListBox.
+   */
+  @SuppressWarnings("unused")
   private void handleTranslationVersionSelected() {
     final XListBox dlgTranslationListBox =
         DialogHelper.getListBox(dlgDialog, DIALOG_TRANSLATION_LISTBOX_ID);
@@ -484,7 +601,11 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
         InsertQuranTextDialog.getItemVersion(dlgTranslationListBox.getSelectedItem());
   }
 
-  private void handleTransliterationCheckButtonPressedSelected() {
+  /**
+   * Handler for Transliteration CheckButton.
+   */
+  @SuppressWarnings("unused")
+  private void handleTransliterationCheckButtonPressed() {
     final XCheckBox dlgTransliterationCheckbox =
         DialogHelper.getCheckBox(dlgDialog, DIALOG_TRANSLITERATION_CHECKBOX_ID);
 
@@ -512,6 +633,10 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
         selectedArabicInd || selectedTranslationInd || selectedTransliterationInd);
   }
 
+  /**
+   * Handler for Transliteration Version ListBox.
+   */
+  @SuppressWarnings("unused")
   private void handleTransliterationVersionSelected() {
     final XListBox dlgTransliterationListBox =
         DialogHelper.getListBox(dlgDialog, DIALOG_TRANSLITERATION_LISTBOX_ID);
@@ -565,14 +690,20 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     selectedArabicFontName = dlgArabicFontListBox.getSelectedItem();
   }
 
+  /**
+   * Initialize the Arabic Fontsize NumericField.
+   */
   private void initializeArabicFontSize() {
     final XNumericField dlgArabicFontSizeNumericField =
         DialogHelper.getNumericField(dlgDialog, DIALOG_ARABIC_FONTSIZE_NUMERICFIELD_ID);
 
-    dlgArabicFontSizeNumericField.setValue(getDefaultArabicCharHeight());
-    selectedArabicFontSize = getDefaultArabicCharHeight();
+    dlgArabicFontSizeNumericField.setValue(getDefaultArabicFontsize());
+    selectedArabicFontSize = getDefaultArabicFontsize();
   }
 
+  /**
+   * Initialize the Arabic LineNumber CheckBox.
+   */
   private void initializeArabicLineNumberCheckBox() {
     selectedLineNumberInd = true;
   }
@@ -602,6 +733,9 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     }
   }
 
+  /**
+   * Initialize the Ayat From NumericField.
+   */
   private void initializeAyatFrom() {
     final XNumericField dlgAyatFromNumericField =
         DialogHelper.getNumericField(dlgDialog, DIALOG_AYAT_FROM_NUMERIC_FIELD_ID);
@@ -609,6 +743,9 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     dlgAyatFromNumericField.setValue(1);
   }
 
+  /**
+   * Initialize the Ayat To NumericField.
+   */
   private void initializeAyatTo() {
     final XNumericField dlgAyatToNumericField =
         DialogHelper.getNumericField(dlgDialog, DIALOG_AYAT_TO_NUMERIC_FIELD_ID);
@@ -621,6 +758,9 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
    */
   private void initializeDialog() {
     getLoDocumentDefaults();
+
+    initializeDialogActions();
+
     initializeSurahListBox();
     initializeAllAyatCheckBox();
     initializeAyatTo();
@@ -638,6 +778,20 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     initializeNonArabicFontSize();
     initializeLineByLineCheckBox();
     initializeWriteSurahProgressBar();
+  }
+
+  /**
+   * Initialize the dialog actions.
+   */
+  private void initializeDialogActions() {
+    try {
+      for (final String action : supportedActions) {
+        actionsMap.put(action,
+            InsertQuranTextDialog.class.getDeclaredMethod("handle".concat(action.substring(2))));
+      }
+    } catch (NoSuchMethodException | SecurityException e) {
+      e.printStackTrace();
+    }
   }
 
   /**
@@ -670,12 +824,15 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     selectedNonArabicFontName = dlgNonArabicFontListBox.getSelectedItem();
   }
 
+  /**
+   * Initialize the Non Arabic Fontsize NumericField.
+   */
   private void initializeNonArabicFontSize() {
     final XNumericField dlgNonArabicFontSizeNumericField =
         DialogHelper.getNumericField(dlgDialog, DIALOG_NON_ARABIC_FONTSIZE_NUMERICFIELD_ID);
 
-    dlgNonArabicFontSizeNumericField.setValue(getDefaultNonArabicCharHeight());
-    selectedNonArabicFontSize = getDefaultNonArabicCharHeight();
+    dlgNonArabicFontSizeNumericField.setValue(getDefaultNonArabicFontSize());
+    selectedNonArabicFontSize = getDefaultNonArabicFontSize();
   }
 
   /**
@@ -738,8 +895,6 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
         InsertQuranTextDialog.short2Boolean(dlgTransliterationCheckbox.getState());
   }
 
-
-
   /**
    * Iniializes the listbox with all the Transliteration versions of the Qur'an.
    */
@@ -766,6 +921,9 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     }
   }
 
+  /**
+   * Initialize the ProgressBar.
+   */
   private void initializeWriteSurahProgressBar() {
     final XProgressBar dlgWriteSurahProgressBar =
         DialogHelper.getProgressBar(dlgDialog, DIALOG_WRITE_SURAH_PROGRESSBAR);
@@ -780,6 +938,68 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
   public void show() {
     initializeDialog();
     dlgDialog.execute();
+  }
+
+  /**
+   * Write the Arabic Text block.
+   *
+   * @param surahNumber the surah number
+   * @param text the text
+   * @param paragraphCursor the paragraph
+   * @param from start ayat
+   * @param to last ayat
+   * @param dlgWriteSurahProgressBar the progressBar
+   */
+  private void writeArabicSurahBlock(final int surahNumber, final XText text,
+      final XParagraphCursor paragraphCursor, final int from, final int to,
+      final XProgressBar dlgWriteSurahProgressBar) {
+    try {
+      final StringBuilder la = new StringBuilder();
+      for (int l = from; l < to; l++) {
+        if ((l == 1) && (surahNumber != 1 && surahNumber != 9)) {
+          la.append(getBismillah(selectedArabicLanguage, selectedArabicVersion));
+          la.append("\n");
+        }
+        dlgWriteSurahProgressBar.setValue(100 * l / (to - from + 1));
+        la.append(getAyahLine(surahNumber, l, selectedArabicLanguage, selectedArabicVersion));
+        la.append(" ");
+      }
+      writeParagraph(text, paragraphCursor, la.toString() + "\n",
+          com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
+    } catch (com.sun.star.lang.IllegalArgumentException | UnknownPropertyException
+        | PropertyVetoException | WrappedTargetException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Write Bismillah lines.
+   *
+   * @param text the text
+   * @param paragraphCursor the paragraph
+   */
+  private void writeBismillahSurahLineByLIne(final XText text,
+      final XParagraphCursor paragraphCursor) {
+    try {
+      if (selectedArabicInd) {
+        writeParagraph(text, paragraphCursor,
+            getBismillah(selectedArabicLanguage, selectedArabicVersion),
+            com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
+      }
+      if (selectedTranslationInd) {
+        writeParagraph(text, paragraphCursor,
+            getBismillah(selectedTranslationLanguage, selectedTranslationVersion),
+            com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
+      }
+      if (selectedTransliterationInd) {
+        writeParagraph(text, paragraphCursor,
+            getBismillah(selectedTransliterationLanguage, selectedTransliterationVersion),
+            com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
+      }
+    } catch (com.sun.star.lang.IllegalArgumentException | UnknownPropertyException
+        | PropertyVetoException | WrappedTargetException e) {
+      e.printStackTrace();
+    }
   }
 
   private void writeParagraph(final XText text, final XParagraphCursor paragraphCursor,
@@ -844,44 +1064,18 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
    */
   private void writeSurahAsOneBlock(final int surahNumber, final XText text,
       final XParagraphCursor paragraphCursor, final int from, final int to) {
-    try {
-      final XProgressBar dlgWriteSurahProgressBar =
-          DialogHelper.getProgressBar(dlgDialog, DIALOG_WRITE_SURAH_PROGRESSBAR);
-      if (selectedArabicInd) {
-        StringBuilder la = new StringBuilder();
-        for (int l = from; l < to; l++) {
-          dlgWriteSurahProgressBar.setValue(100 * l / (to - from + 1));
-          la.append(getAyahLine(surahNumber, l, selectedArabicLanguage, selectedArabicVersion));
-          la.append(" ");
-        }
-        writeParagraph(text, paragraphCursor, la.toString() + "\n",
-            com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
-      }
-      if (selectedTranslationInd) {
-        StringBuilder lb = new StringBuilder();
-        for (int l = from; l < to; l++) {
-          dlgWriteSurahProgressBar.setValue(100 * l / (to - from + 1));
-          lb.append(
-              getAyahLine(surahNumber, l, selectedTranslationLanguage, selectedTranslationVersion));
-          lb.append(" ");
-        }
-        writeParagraph(text, paragraphCursor, lb.toString() + "\n",
-            com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
-      }
-      if (selectedTransliterationInd) {
-        StringBuilder lc = new StringBuilder();
-        for (int l = from; l < to; l++) {
-          dlgWriteSurahProgressBar.setValue(100 * l / (to - from + 1));
-          lc.append(getAyahLine(surahNumber, l, selectedTransliterationLanguage,
-              selectedTransliterationVersion));
-          lc.append(" ");
-        }
-        writeParagraph(text, paragraphCursor, lc.toString() + "\n",
-            com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
-      }
-    } catch (com.sun.star.lang.IllegalArgumentException | UnknownPropertyException
-        | PropertyVetoException | WrappedTargetException e) {
-      e.printStackTrace();
+    final XProgressBar dlgWriteSurahProgressBar =
+        DialogHelper.getProgressBar(dlgDialog, DIALOG_WRITE_SURAH_PROGRESSBAR);
+    if (selectedArabicInd) {
+      writeArabicSurahBlock(surahNumber, text, paragraphCursor, from, to, dlgWriteSurahProgressBar);
+    }
+    if (selectedTranslationInd) {
+      writeTranslationSurahBlock(surahNumber, text, paragraphCursor, from, to,
+          dlgWriteSurahProgressBar);
+    }
+    if (selectedTransliterationInd) {
+      writeTransliterationSurahBlock(surahNumber, text, paragraphCursor, from, to,
+          dlgWriteSurahProgressBar);
     }
   }
 
@@ -897,25 +1091,29 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
   private void writeSurahLineByLine(final int surahNumber, final XText text,
       final XParagraphCursor paragraphCursor, final int from, final int to) {
     try {
+
       final XProgressBar dlgWriteSurahProgressBar =
           DialogHelper.getProgressBar(dlgDialog, DIALOG_WRITE_SURAH_PROGRESSBAR);
+      if ((from == 1) && (surahNumber != 1 && surahNumber != 9)) {
+        writeBismillahSurahLineByLIne(text, paragraphCursor);
+      }
+
       for (int l = from; l < to; l++) {
         dlgWriteSurahProgressBar.setValue(100 * l / (to - from + 1));
         if (selectedArabicInd) {
           writeParagraph(text, paragraphCursor,
-              getAyahLine(surahNumber, l, selectedArabicLanguage, selectedArabicVersion) + "\n",
+              getAyahLine(surahNumber, l, selectedArabicLanguage, selectedArabicVersion),
               com.sun.star.style.ParagraphAdjust.RIGHT, com.sun.star.text.WritingMode2.RL_TB);
         }
         if (selectedTranslationInd) {
           writeParagraph(text, paragraphCursor,
-              getAyahLine(surahNumber, l, selectedTranslationLanguage, selectedTranslationVersion)
-                  + "\n",
+              getAyahLine(surahNumber, l, selectedTranslationLanguage, selectedTranslationVersion),
               com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
         }
         if (selectedTransliterationInd) {
           writeParagraph(text, paragraphCursor,
               getAyahLine(surahNumber, l, selectedTransliterationLanguage,
-                  selectedTransliterationVersion) + "\n",
+                  selectedTransliterationVersion),
               com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
         }
       }
@@ -925,4 +1123,69 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     }
   }
 
+  /**
+   * Write the Translation Text block.
+   *
+   * @param surahNumber the surah number
+   * @param text the text
+   * @param paragraphCursor the paragraph
+   * @param from start ayat
+   * @param to last ayat
+   * @param dlgWriteSurahProgressBar the progressBar
+   */
+  private void writeTranslationSurahBlock(final int surahNumber, final XText text,
+      final XParagraphCursor paragraphCursor, final int from, final int to,
+      final XProgressBar dlgWriteSurahProgressBar) {
+    try {
+      final StringBuilder lb = new StringBuilder();
+      for (int l = from; l < to; l++) {
+        if ((l == 1) && (surahNumber != 1 && surahNumber != 9)) {
+          lb.append(getBismillah(selectedTranslationLanguage, selectedTranslationVersion));
+          lb.append("\n");
+        }
+        dlgWriteSurahProgressBar.setValue(100 * l / (to - from + 1));
+        lb.append(
+            getAyahLine(surahNumber, l, selectedTranslationLanguage, selectedTranslationVersion));
+        lb.append(" ");
+      }
+      writeParagraph(text, paragraphCursor, lb.toString() + "\n",
+          com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
+    } catch (com.sun.star.lang.IllegalArgumentException | UnknownPropertyException
+        | PropertyVetoException | WrappedTargetException e) {
+      e.printStackTrace();
+    }
+  }
+
+  /**
+   * Write the Transliteration Text block.
+   *
+   * @param surahNumber the surah number
+   * @param text the text
+   * @param paragraphCursor the paragraph
+   * @param from start ayat
+   * @param to last ayat
+   * @param dlgWriteSurahProgressBar the progressBar
+   */
+  private void writeTransliterationSurahBlock(final int surahNumber, final XText text,
+      final XParagraphCursor paragraphCursor, final int from, final int to,
+      final XProgressBar dlgWriteSurahProgressBar) {
+    try {
+      final StringBuilder lc = new StringBuilder();
+      for (int l = from; l < to; l++) {
+        if ((l == 1) && (surahNumber != 1 && surahNumber != 9)) {
+          lc.append(getBismillah(selectedTransliterationLanguage, selectedTransliterationVersion));
+          lc.append("\n");
+        }
+        dlgWriteSurahProgressBar.setValue(100 * l / (to - from + 1));
+        lc.append(getAyahLine(surahNumber, l, selectedTransliterationLanguage,
+            selectedTransliterationVersion));
+        lc.append(" ");
+      }
+      writeParagraph(text, paragraphCursor, lc.toString() + "\n",
+          com.sun.star.style.ParagraphAdjust.LEFT, com.sun.star.text.WritingMode2.LR_TB);
+    } catch (com.sun.star.lang.IllegalArgumentException | UnknownPropertyException
+        | PropertyVetoException | WrappedTargetException e) {
+      e.printStackTrace();
+    }
+  }
 }

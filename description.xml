@@ -3,8 +3,15 @@
   xmlns="http://openoffice.org/extensions/description/2006"
   xmlns:d="http://openoffice.org/extensions/description/2006"
   xmlns:xlink="http://www.w3.org/1999/xlink">
-  <version value="0.1" />
+  <version value="1.0 RC" />
   <identifier value="nl.mossoft.loeiqt.insertqurantext" />
+  <registration>
+    <simple-license accept-by="admin">
+      <license-text
+        lang="en"
+        xlink:href="COPYING" />
+    </simple-license>
+  </registration>
   <display-name>
     <name lang="en">InsertQuranText</name>
   </display-name>

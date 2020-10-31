@@ -18,7 +18,6 @@
 package nl.mossoft.loeiqt.helper;
 
 import com.sun.star.uno.XComponentContext;
-import java.awt.Font;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -63,7 +62,7 @@ public class QuranReader {
 
   /**
    * Get the filename for a particular quran version.
-   * 
+   *
    * @param language the language of the version
    * @param version a version
    * @return the filename
@@ -113,25 +112,6 @@ public class QuranReader {
         29, 19, 36, 25, 22, 17, 19, 26, 30, 20, 15, 21, 11, 8, 8, 19, 5, 8, 8, 11, 11, 8, 3, 9, 5,
         4, 7, 3, 6, 3, 5, 4, 5, 6};
     return surahSizes[surahno - 1];
-  }
-
-  /**
-   * Returns the arabic representation of a number.
-   *
-   * @param n number between 0-9
-   * @param fontname fontname
-   * @return arabic number string
-   */
-  public static String numToArabNum(int n, final String fontname) {
-
-    final int base = (new Font(fontname, Font.PLAIN, 10).canDisplay(0x06F0)) ? 0x06F0 : 0x0660;
-
-    final StringBuilder as = new StringBuilder();
-    while (n > 0) {
-      as.append(Character.toChars(base + (n % 10)));
-      n = n / 10;
-    }
-    return as.reverse().toString();
   }
 
   private Document doc;

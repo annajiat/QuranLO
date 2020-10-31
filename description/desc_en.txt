@@ -1,1 +1,1 @@
-Insert Quran Text Extension
+The Insert Quran Text Extension allows you to insert ayats from the Qur'an in your document. Additionally it provides several translations.
