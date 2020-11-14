@@ -20,9 +20,7 @@ package nl.mossoft.loeiqt.helper;
 import com.sun.star.uno.XComponentContext;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -43,22 +41,6 @@ import org.xml.sax.SAXException;
  *
  */
 public class QuranReader {
-
-
-  /**
-   * Get all the available quran versions.
-   *
-   * @return a map with the quran versions
-   */
-  public static Map<String, String[]> getAllQuranVersions() {
-    final Map<String, String[]> quranVersions = new LinkedHashMap<>();
-    quranVersions.put("Indonesian", new String[] {"Ministry of Religious Affairs"});
-    quranVersions.put("English", new String[] {"Sahih International", "Pickthall"});
-    quranVersions.put("Dutch", new String[] {"Leemhuis", "Siregar"});
-    quranVersions.put("Arabic", new String[] {"Medina"});
-
-    return quranVersions;
-  }
 
   /**
    * Get the filename for a particular quran version.

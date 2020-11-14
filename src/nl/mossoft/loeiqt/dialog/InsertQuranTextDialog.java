@@ -40,18 +40,24 @@ import com.sun.star.uno.UnoRuntime;
 import com.sun.star.uno.XComponentContext;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import nl.mossoft.loeiqt.helper.DialogHelper;
 import nl.mossoft.loeiqt.helper.DocumentHelper;
+import nl.mossoft.loeiqt.helper.FileHelper;
 import nl.mossoft.loeiqt.helper.QuranReader;
 
 public class InsertQuranTextDialog implements XDialogEventHandler {
 
   private static final String ARABIC = "Arabic";
+  private static final String TRANSLITERATION = "Transliteration";
   private static final String DIALOG_ALL_AYAT_CHECKBOX_ID = "AllAyatCheckBoxID";
   private static final String DIALOG_ARABIC_CHECKBOX_ID = "ArabicCheckBoxID";
   private static final String DIALOG_ARABIC_FONT_GROUPBOX_ID = "ArabicFontGroupBoxID";
@@ -714,16 +720,18 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
   private void initializeArabicListBox() {
     final XListBox dlgArabicListBox = DialogHelper.getListBox(dlgDialog, DIALOG_ARABIC_LISTBOX_ID);
 
-    QuranReader.getAllQuranVersions().entrySet().stream().forEach(entry -> {
-      final String currentKey = entry.getKey();
-      final String[] currentValue = entry.getValue();
-      int i = 0;
-      for (final String element : currentValue) {
-        if (currentKey.equals(ARABIC)) {
-          dlgArabicListBox.addItem(currentKey + " (" + element + ")", (short) i++);
-        }
+    File path = FileHelper.getFilePath("resources/quran", dlgContext);
+    List<String> fns = Arrays.asList(path.list());    
+    Collections.sort(fns);
+    
+    int k = 0;
+    for (String fn : fns) {
+       String[] parts = fn.split("[.]");
+      if (parts[1].equals(ARABIC)) {
+        dlgArabicListBox.addItem(parts[1] + " (" + parts[2].replace("_", " ") + ")",
+            (short) k++);
       }
-    });
+    }
     if (dlgArabicListBox.getItemCount() > 0) {
       dlgArabicListBox.selectItemPos((short) 0, true);
       selectedArabicLanguage =
@@ -865,16 +873,18 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     final XListBox dlgTranslationListBox =
         DialogHelper.getListBox(dlgDialog, DIALOG_TRANSLATION_LISTBOX_ID);
 
-    QuranReader.getAllQuranVersions().entrySet().stream().forEach(entry -> {
-      final String currentKey = entry.getKey();
-      final String[] currentValue = entry.getValue();
-      int i = 0;
-      for (final String element : currentValue) {
-        if (!currentKey.equals(ARABIC)) {
-          dlgTranslationListBox.addItem(currentKey + " (" + element + ")", (short) i++);
-        }
+    File path = FileHelper.getFilePath("resources/quran", dlgContext);
+    List<String> fns = Arrays.asList(path.list());    
+    Collections.sort(fns);
+    
+    int k = 0;
+    for (String fn : fns) {
+      String[] parts = fn.split("[.]");
+      if (!parts[1].equals(ARABIC)) {
+        dlgTranslationListBox.addItem(parts[1] + " (" + parts[2].replace("_", " ") + ")",
+            (short) k++);
       }
-    });
+    }
     if (dlgTranslationListBox.getItemCount() > 0) {
       dlgTranslationListBox.selectItemPos((short) 0, true);
       selectedTranslationLanguage =
@@ -902,17 +912,19 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     final XListBox dlgTransliterationListBox =
         DialogHelper.getListBox(dlgDialog, DIALOG_TRANSLITERATION_LISTBOX_ID);
 
-    QuranReader.getAllQuranVersions().entrySet().stream().forEach(entry -> {
-      final String currentKey = entry.getKey();
-      final String[] currentValue = entry.getValue();
-      int i = 0;
-      for (final String element : currentValue) {
-        if (currentKey.equals("Transliteration")) {
-          dlgTransliterationListBox.addItem(currentKey + " (" + element + ")", (short) i++);
-        }
+    File path = FileHelper.getFilePath("resources/quran", dlgContext);
+    List<String> fns = Arrays.asList(path.list());    
+    Collections.sort(fns);
+    
+    int k = 0;
+    for (String fn : fns) {
+      String[] parts = fn.split("[.]");
+      if (parts[1].equals(TRANSLITERATION)) {
+        dlgTransliterationListBox.addItem(parts[1] + " (" + parts[2].replace("_", " ") + ")",
+            (short) k++);
       }
-    });
-    if (dlgTransliterationListBox.getItemCount() > 0) {
+    }
+   if (dlgTransliterationListBox.getItemCount() > 0) {
       dlgTransliterationListBox.selectItemPos((short) 0, true);
       selectedTransliterationLanguage =
           InsertQuranTextDialog.getItemLanguague(dlgTransliterationListBox.getSelectedItem());

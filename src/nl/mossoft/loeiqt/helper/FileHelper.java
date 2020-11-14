@@ -28,7 +28,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-class FileHelper {
+public class FileHelper {
 
   private static final String DIALOG_RESOURCES = "dialog/";
   private static final String QURAN_RESOURCES = "resources/quran/";
@@ -43,7 +43,7 @@ class FileHelper {
   /**
    * Returns a file path for a file in the installed extension, or null on failure.
    */
-  private static File getFilePath(final String file, final XComponentContext xcontext) {
+  public static File getFilePath(final String file, final XComponentContext xcontext) {
     final XPackageInformationProvider xpackageInformationProvider =
         PackageInformationProvider.get(xcontext);
     final String location =
