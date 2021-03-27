@@ -113,7 +113,7 @@
       dlg:help-text="&amp;226.InsertQuranText.AyatFromNumericFieldID.HelpText"
       dlg:decimal-accuracy="0"
       dlg:value-min="1"
-      dlg:value-max="258"
+      dlg:value-max="286"
       dlg:spin="true">
       <script:event
         script:event-name="on-textchange"
@@ -131,7 +131,7 @@
       dlg:help-text="&amp;227.InsertQuranText.AyatToNumericFieldID.HelpText"
       dlg:decimal-accuracy="0"
       dlg:value-min="1"
-      dlg:value-max="258"
+      dlg:value-max="286"
       dlg:spin="true">
       <script:event
         script:event-name="on-textchange"

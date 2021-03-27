@@ -6,11 +6,11 @@ The standard font is selected from the LibreOffice Basic Fonts (CTL) setting.
 It uses the Default font and its Fontsize. The Font and Fontsize can be overridden by setting 
 it on the selection dialog. The Font Selection shows only fonts that support the arabic ...
 
-A fonts that gives very good results is: 
-**Scheherazade**. This you can find at <https://software.sil.org/scheherazade/>.
-It allows you to fine tune the font by so called smart features. You can even generate a font with the smart features set to your liking. 
+A fonts that gives good results are: 
+* **Scheherazade** This you can find at <https://software.sil.org/scheherazade/>.
+Using so called smart features, you can fine tune the font. You can generate your own font with the smart features set to your liking. 
 
-**Al Qalam Quran Majeed**, **Al Qalam Quran Majeed 1**, **Al Qalam Quran Majeed 2**. 
+* **Al Qalam Quran Majeed**, **Al Qalam Quran Majeed 1**, **Al Qalam Quran Majeed 2**. 
 
 Other Arabic fonts give mixed results. Some don't have the parenthesis or even the standard Arabic numbers. I tried to mitigate for that by providing substitutions.
 
