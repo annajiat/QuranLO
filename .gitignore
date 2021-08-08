@@ -1,0 +1,6 @@
+bin/
+build/
+dist/.ooo-debug
+resources/data/
+types.rdb
+*.checkstyle
