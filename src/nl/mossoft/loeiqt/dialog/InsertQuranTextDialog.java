@@ -40,6 +40,7 @@ import com.sun.star.uno.XComponentContext;
 import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -135,7 +136,8 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     fontmap.put("me_quran", 0x0660);
     fontmap.put("Scheherazade", 0x0660);
     fontmap.put("Scheherazade quran", 0x0660);
-
+    fontmap.put("Scheherazade New quran", 0x0660);
+    
     if (fontmap.containsKey(fontname)) {
       return fontmap.get(fontname);
     } else {
@@ -397,7 +399,16 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
    */
   private List<String> getQuranTxtFiles() {
     final File path = FileHelper.getFilePath("resources/quran", dlgContext);
-    final List<String> fns = Arrays.asList(path.list());
+    final String[] files = path.list(new FilenameFilter() {
+      public boolean accept(File dir, String name) {
+        if (name.toLowerCase().endsWith(".xml")) {
+          return true;
+        } else {
+          return false;
+        }
+      }
+    });
+    final List<String> fns = Arrays.asList(files);
     Collections.sort(fns);
     return fns;
   }
@@ -806,8 +817,8 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     initializeArabicListBox();
     initializeTranslationCheckBox();
     initializeTranslationListBox();
-    initializeTransliterationCheckBox();
-    initializeTransliterationListBox();
+    // initializeTransliterationCheckBox();
+    // initializeTransliterationListBox();
     initializeArabicFontListBox();
     initializeArabicFontSize();
     initializeArabicLineNumberCheckBox();
@@ -815,7 +826,7 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
     initializeTranslationFontSize();
     initializeLineByLineCheckBox();
     initializeWriteSurahProgressBar();
-  }
+   }
 
   /**
    * Initialize the dialog actions.
@@ -1066,12 +1077,12 @@ public class InsertQuranTextDialog implements XDialogEventHandler {
       } else {
         writeSurahAsOneBlock(surahNumber, text, paragraphCursor, from, to);
       }
- 
+
       paragraphCursorPropertySet.setPropertyValue("CharFontName", selectedTranslationFontName);
       paragraphCursorPropertySet.setPropertyValue("CharFontNameComplex", selectedArabicFontName);
       paragraphCursorPropertySet.setPropertyValue("CharHeight", selectedTranslationFontSize);
       paragraphCursorPropertySet.setPropertyValue("CharHeightComplex", selectedArabicFontSize);
-   
+
     } catch (com.sun.star.lang.IllegalArgumentException | UnknownPropertyException
         | PropertyVetoException | WrappedTargetException e) {
       e.printStackTrace();

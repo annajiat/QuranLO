@@ -4,3 +4,6 @@ dist/.ooo-debug
 resources/data/
 types.rdb
 *.checkstyle
+/build.properties
+/build.xml
+/.unoproject
